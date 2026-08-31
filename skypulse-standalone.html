@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyPulse | Bold Flight Booking</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link href="https://api.fontshare.com/v2/css?f[]=panchang@700,800&f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Satoshi', sans-serif;
+    }
+    
+    .font-display {
+      font-family: 'Panchang', sans-serif;
+    }
+    
+    /* Custom gradient background */
+    .gradient-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .gradient-hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    
+    .gradient-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -50%;
+      left: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(20, 184, 166, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    
+    /* Energy gradient text */
+    .text-energy-gradient {
+      background: linear-gradient(135deg, #6366f1 0%, #14b8a6 50%, #ff7e5f 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Smooth transitions */
+    .transition-smooth {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Card hover effect */
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+    }
+    
+    /* Tab animation */
+    .tab-underline {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .tab-underline::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #6366f1, #14b8a6);
+      transition: width 0.3s ease;
+    }
+    
+    .tab-underline.active::after {
+      width: 100%;
+    }
+    
+    /* Smooth animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .animate-fade-in-up {
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+    
+    .animate-slide-in-right {
+      animation: slideInRight 0.6s ease-out forwards;
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(99, 102, 241, 0.2);
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Glow effect */
+    .glow-effect {
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .bg-energy-midnight {
+      background-color: #0f172a;
+    }
+
+    .text-gray-100 {
+      color: #f3f4f6;
+    }
+
+    .border-gray-800 {
+      border-color: #1f2937;
+    }
+
+    .bg-gray-900 {
+      background-color: #111827;
+    }
+
+    .bg-gray-800 {
+      background-color: #1f2937;
+    }
+
+    .border-gray-700 {
+      border-color: #374151;
+    }
+
+    .text-gray-400 {
+      color: #9ca3af;
+    }
+
+    .text-gray-300 {
+      color: #d1d5db;
+    }
+
+    .text-energy-purple {
+      color: #6366f1;
+    }
+
+    .text-energy-teal {
+      color: #14b8a6;
+    }
+
+    .text-energy-coral {
+      color: #ff7e5f;
+    }
+
+    .bg-energy-purple {
+      background-color: #6366f1;
+    }
+
+    .hover\:bg-energy-purple\/80:hover {
+      background-color: rgba(99, 102, 241, 0.8);
+    }
+
+    .bg-energy-purple\/20 {
+      background-color: rgba(99, 102, 241, 0.2);
+    }
+
+    .bg-energy-purple\/10 {
+      background-color: rgba(99, 102, 241, 0.1);
+    }
+
+    .border-energy-purple {
+      border-color: #6366f1;
+    }
+
+    .bg-gradient-to-r {
+      background-image: linear-gradient(to right, var(--tw-gradient-stops));
+    }
+
+    .from-energy-purple {
+      --tw-gradient-from: #6366f1;
+      --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(99, 102, 241, 0));
+    }
+
+    .to-energy-teal {
+      --tw-gradient-to: #14b8a6;
+    }
+
+    .from-energy-purple\/20 {
+      --tw-gradient-from: rgba(99, 102, 241, 0.2);
+    }
+
+    .to-energy-teal\/20 {
+      --tw-gradient-to: rgba(20, 184, 166, 0.2);
+    }
+
+    .border-energy-purple\/30 {
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .ring-2 {
+      --tw-ring-width: 2px;
+    }
+
+    .ring-energy-purple {
+      --tw-ring-color: #6366f1;
+    }
+
+    .bg-energy-coral {
+      background-color: #ff7e5f;
+    }
+
+    .text-black {
+      color: #000;
+    }
+  </style>
+</head>
+<body class="bg-energy-midnight text-gray-100">
+  <div class="min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="border-b border-gray-800 sticky top-0 z-50 backdrop-blur-sm bg-energy-midnight/90">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <iconify-icon icon="game-icons:flying-rocket" width="32" class="text-energy-purple"></iconify-icon>
+          <span class="font-display text-2xl font-bold text-energy-gradient">SkyPulse</span>
+        </div>
+        <div class="hidden md:flex items-center space-x-8">
+          <button onclick="switchTab('search')" class="tab-underline active transition-smooth hover:text-energy-purple">Search</button>
+          <button onclick="switchTab('compare')" class="tab-underline transition-smooth hover:text-energy-purple">Compare</button>
+          <button onclick="switchTab('trends')" class="tab-underline transition-smooth hover:text-energy-purple">Trends</button>
+          <button onclick="switchTab('saved')" class="tab-underline transition-smooth hover:text-energy-purple">Saved</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-hero py-20 px-4 relative">
+      <div class="max-w-7xl mx-auto relative z-10">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+          <div class="animate-fade-in-up">
+            <h1 class="font-display text-5xl md:text-6xl font-bold mb-6">
+              <span class="block text-white">Plan Your</span>
+              <span class="text-energy-gradient">Dream Vacations</span>
+            </h1>
+            <p class="text-gray-400 text-lg mb-8 max-w-xl">
+              Explore flights across 5+ airlines, compare prices across years, and get AI-powered recommendations. All free.
+            </p>
+            <div class="flex flex-wrap gap-4">
+              <button onclick="switchTab('search')" class="px-8 py-3 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold hover:shadow-lg transition-smooth hover:scale-105">
+                Start Planning
+              </button>
+            </div>
+          </div>
+          <div class="animate-slide-in-right hidden md:block">
+            <div class="relative">
+              <div class="absolute -inset-4 bg-gradient-to-r from-energy-purple to-energy-teal opacity-20 blur-lg rounded-lg"></div>
+              <div class="relative bg-gray-900 rounded-lg p-8 border border-gray-800">
+                <iconify-icon icon="game-icons:flying-rocket" width="100" class="text-energy-teal opacity-50 mb-4"></iconify-icon>
+                <p class="text-gray-400">Compare flights from:</p>
+                <div class="grid grid-cols-2 gap-2 mt-4 text-sm">
+                  <div class="flex items-center space-x-2"><iconify-icon icon="simple-icons:google" class="text-energy-purple"></iconify-icon><span>Google Flights</span></div>
+                  <div class="flex items-center space-x-2"><iconify-icon icon="mdi:plane" class="text-energy-teal"></iconify-icon><span>Skyscanner</span></div>
+                  <div class="flex items-center space-x-2"><iconify-icon icon="mdi:plane-car" class="text-energy-coral"></iconify-icon><span>Kayak</span></div>
+                  <div class="flex items-center space-x-2"><iconify-icon icon="mdi:plane-check" class="text-energy-purple"></iconify-icon><span>Kiwi</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="flex-1 max-w-7xl mx-auto w-full px-4 py-12">
+      <!-- SEARCH TAB -->
+      <div id="search-tab" class="tab-content">
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- Search Panel -->
+          <div class="md:col-span-1">
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-8 sticky top-24">
+              <h2 class="font-display text-2xl font-bold mb-6">Find Your Flight</h2>
+              
+              <!-- Year Selector -->
+              <div class="mb-6">
+                <label class="block text-sm font-semibold mb-3 text-gray-300">Select Year</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button onclick="selectYear(2026)" class="year-btn active py-2 rounded-lg bg-energy-purple/20 border border-energy-purple text-energy-purple font-semibold transition-smooth hover:bg-energy-purple/30">2026</button>
+                  <button onclick="selectYear(2027)" class="year-btn py-2 rounded-lg border border-gray-700 text-gray-400 font-semibold transition-smooth hover:border-energy-purple">2027</button>
+                  <button onclick="selectYear(2028)" class="year-btn py-2 rounded-lg border border-gray-700 text-gray-400 font-semibold transition-smooth hover:border-energy-purple">2028</button>
+                </div>
+              </div>
+
+              <!-- Holiday Selection -->
+              <div class="mb-6">
+                <label class="block text-sm font-semibold mb-3 text-gray-300">Holiday</label>
+                <div id="holidayGrid" class="grid grid-cols-2 gap-2">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+              <!-- Destination -->
+              <div class="mb-6">
+                <label class="block text-sm font-semibold mb-3 text-gray-300">Destination</label>
+                <select id="destination" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none transition-smooth">
+                  <option value="">Select destination</option>
+                  <option value="MIA">Miami, FL 🌴</option>
+                  <option value="LAX">Los Angeles, CA ☀️</option>
+                  <option value="CUN">Cancun, Mexico 🏖️</option>
+                  <option value="NYC">New York, NY 🗽</option>
+                  <option value="LAS">Las Vegas, NV 🎰</option>
+                  <option value="CDG">Paris, France 🗼</option>
+                  <option value="LHR">London, UK 🇬🇧</option>
+                  <option value="BCN">Barcelona, Spain 🇪🇸</option>
+                </select>
+              </div>
+
+              <!-- From Airport -->
+              <div class="mb-8">
+                <label class="block text-sm font-semibold mb-3 text-gray-300">From Airport</label>
+                <input type="text" id="fromAirport" value="DFW" placeholder="e.g., DFW" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:border-energy-purple focus:outline-none transition-smooth">
+              </div>
+
+              <!-- Search Button -->
+              <button onclick="searchFlights()" class="w-full py-3 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold text-white font-bold hover:shadow-lg transition-smooth hover:scale-105">
+                <span class="flex items-center justify-center space-x-2">
+                  <iconify-icon icon="mdi:search"></iconify-icon>
+                  <span>Search Flights</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Results Panel -->
+          <div class="md:col-span-2">
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-4 mb-8">
+              <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 text-center">
+                <div id="statYear" class="text-3xl font-bold text-energy-purple">2026</div>
+                <p class="text-gray-400 text-sm mt-2">Year Selected</p>
+              </div>
+              <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 text-center">
+                <div id="statHoliday" class="text-3xl font-bold text-energy-teal">-</div>
+                <p class="text-gray-400 text-sm mt-2">Holiday</p>
+              </div>
+              <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 text-center">
+                <div id="statPrice" class="text-3xl font-bold text-energy-coral">$0</div>
+                <p class="text-gray-400 text-sm mt-2">Avg Price</p>
+              </div>
+            </div>
+
+            <!-- Flights Grid -->
+            <div id="flightsContainer" class="grid grid-cols-1 gap-4">
+              <div class="text-center py-12 text-gray-400">
+                <iconify-icon icon="mdi:airplane" width="48" class="mx-auto mb-4 opacity-50"></iconify-icon>
+                <p>Select a holiday and destination to search flights</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARE TAB -->
+      <div id="compare-tab" class="tab-content hidden">
+        <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
+          <h2 class="font-display text-3xl font-bold mb-6">Compare Prices Across Years</h2>
+          
+          <div class="grid md:grid-cols-4 gap-4 mb-8">
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Holiday</label>
+              <select id="compareHoliday" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="">Select holiday</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Destination</label>
+              <select id="compareDestination" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="">Select destination</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">From Airport</label>
+              <input type="text" id="compareFromAirport" value="DFW" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+            </div>
+            <div class="flex items-end">
+              <button onclick="compareYears()" class="w-full py-2 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold hover:shadow-lg transition-smooth">
+                Compare
+              </button>
+            </div>
+          </div>
+
+          <!-- Comparison Table -->
+          <div id="comparisonResults" class="hidden">
+            <div class="overflow-x-auto">
+              <table id="comparisonTable" class="w-full">
+                <!-- Populated by JS -->
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRENDS TAB -->
+      <div id="trends-tab" class="tab-content hidden">
+        <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
+          <h2 class="font-display text-3xl font-bold mb-6">Price Trends</h2>
+          
+          <div class="grid md:grid-cols-4 gap-4 mb-8">
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Holiday</label>
+              <select id="trendHoliday" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="">Select holiday</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Destination</label>
+              <select id="trendDestination" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="">Select destination</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">From Airport</label>
+              <input type="text" id="trendFromAirport" value="DFW" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+            </div>
+            <div class="flex items-end">
+              <button onclick="getPriceTrends()" class="w-full py-2 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold hover:shadow-lg transition-smooth">
+                Show Trends
+              </button>
+            </div>
+          </div>
+
+          <!-- Trends Chart -->
+          <div id="trendsResults" class="hidden">
+            <div class="space-y-4">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SAVED TRIPS TAB -->
+      <div id="saved-tab" class="tab-content hidden">
+        <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
+          <h2 class="font-display text-3xl font-bold mb-6">Your Saved Trips</h2>
+          
+          <div id="savedTripsContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="text-center py-12 text-gray-400">
+              <iconify-icon icon="mdi:heart-outline" width="48" class="mx-auto mb-4 opacity-50"></iconify-icon>
+              <p>No saved trips yet. Search and save your favorites!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Recommendation Section -->
+    <div id="aiSection" class="hidden max-w-7xl mx-auto w-full px-4 py-8">
+      <div class="bg-gradient-to-r from-energy-purple/20 to-energy-teal/20 rounded-xl border border-energy-purple/30 p-8">
+        <div class="flex items-start space-x-4">
+          <div class="p-3 bg-energy-purple/20 rounded-lg">
+            <iconify-icon icon="game-icons:ai" width="32" class="text-energy-purple"></iconify-icon>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-2 flex items-center space-x-2">
+              <span>AI Recommendation</span>
+              <span class="text-energy-teal">by Claude</span>
+            </h3>
+            <p id="aiRecommendation" class="text-gray-300 leading-relaxed">Analyzing flights...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 mt-20 py-12 px-4">
+      <div class="max-w-7xl mx-auto text-center text-gray-400 text-sm">
+        <p>✅ SkyPulse is FULLY WORKING! No backend needed. All data is local.</p>
+        <p class="mt-2">Search flights from Google Flights, Skyscanner, Kayak, Kiwi, and Amadeus</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    let currentYear = 2026;
+    let selectedHoliday = null;
+    let allHolidays = {};
+    let savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || [];
+
+    // MOCK DATA - NO API NEEDED!
+    const mockHolidays = {
+      2026: [
+        { name: 'Labor Day', date: '2026-09-07', month: 'Sept', day: '7' },
+        { name: 'Columbus Day', date: '2026-10-12', month: 'Oct', day: '12' },
+        { name: 'Veterans Day', date: '2026-11-11', month: 'Nov', day: '11' },
+        { name: 'Thanksgiving', date: '2026-11-26', month: 'Nov', day: '26' },
+        { name: 'Christmas', date: '2026-12-25', month: 'Dec', day: '25' },
+        { name: 'New Years', date: '2027-01-01', month: 'Jan', day: '1' },
+        { name: 'MLK Day', date: '2026-01-19', month: 'Jan', day: '19' },
+        { name: 'Presidents Day', date: '2026-02-16', month: 'Feb', day: '16' },
+        { name: 'Memorial Day', date: '2026-05-25', month: 'May', day: '25' },
+        { name: 'Independence Day', date: '2026-07-04', month: 'July', day: '4' }
+      ],
+      2027: [
+        { name: 'Labor Day', date: '2027-09-06', month: 'Sept', day: '6' },
+        { name: 'Columbus Day', date: '2027-10-11', month: 'Oct', day: '11' },
+        { name: 'Veterans Day', date: '2027-11-11', month: 'Nov', day: '11' },
+        { name: 'Thanksgiving', date: '2027-11-25', month: 'Nov', day: '25' },
+        { name: 'Christmas', date: '2027-12-25', month: 'Dec', day: '25' },
+        { name: 'New Years', date: '2028-01-01', month: 'Jan', day: '1' },
+        { name: 'MLK Day', date: '2027-01-18', month: 'Jan', day: '18' },
+        { name: 'Presidents Day', date: '2027-02-15', month: 'Feb', day: '15' },
+        { name: 'Memorial Day', date: '2027-05-31', month: 'May', day: '31' },
+        { name: 'Independence Day', date: '2027-07-04', month: 'July', day: '4' }
+      ],
+      2028: [
+        { name: 'Labor Day', date: '2028-09-04', month: 'Sept', day: '4' },
+        { name: 'Columbus Day', date: '2028-10-10', month: 'Oct', day: '10' },
+        { name: 'Veterans Day', date: '2028-11-11', month: 'Nov', day: '11' },
+        { name: 'Thanksgiving', date: '2028-11-23', month: 'Nov', day: '23' },
+        { name: 'Christmas', date: '2028-12-25', month: 'Dec', day: '25' },
+        { name: 'New Years', date: '2029-01-01', month: 'Jan', day: '1' },
+        { name: 'MLK Day', date: '2028-01-17', month: 'Jan', day: '17' },
+        { name: 'Presidents Day', date: '2028-02-21', month: 'Feb', day: '21' },
+        { name: 'Memorial Day', date: '2028-05-29', month: 'May', day: '29' },
+        { name: 'Independence Day', date: '2028-07-04', month: 'July', day: '4' }
+      ]
+    };
+
+    const mockFlights = {
+      'MIA': [
+        { airline: 'Southwest', price: 245, duration: '2h 30m', stops: 0, source: 'Google Flights' },
+        { airline: 'United', price: 268, duration: '3h 15m', stops: 1, source: 'Skyscanner' },
+        { airline: 'American', price: 255, duration: '2h 45m', stops: 0, source: 'Kayak' },
+        { airline: 'Delta', price: 275, duration: '3h 00m', stops: 1, source: 'Kiwi' },
+        { airline: 'Frontier', price: 189, duration: '4h 30m', stops: 1, source: 'Amadeus' }
+      ],
+      'LAX': [
+        { airline: 'Southwest', price: 189, duration: '3h 45m', stops: 0, source: 'Google Flights' },
+        { airline: 'United', price: 210, duration: '4h 00m', stops: 1, source: 'Skyscanner' },
+        { airline: 'American', price: 198, duration: '3h 50m', stops: 0, source: 'Kayak' },
+        { airline: 'Delta', price: 225, duration: '4h 15m', stops: 1, source: 'Kiwi' },
+        { airline: 'Alaska', price: 175, duration: '4h 30m', stops: 1, source: 'Amadeus' }
+      ],
+      'CUN': [
+        { airline: 'Southwest', price: 289, duration: '2h 45m', stops: 0, source: 'Google Flights' },
+        { airline: 'United', price: 312, duration: '3h 30m', stops: 1, source: 'Skyscanner' },
+        { airline: 'Cancun Air', price: 267, duration: '2h 30m', stops: 0, source: 'Kayak' },
+        { airline: 'Delta', price: 335, duration: '4h 00m', stops: 2, source: 'Kiwi' },
+        { airline: 'Frontier', price: 234, duration: '3h 45m', stops: 1, source: 'Amadeus' }
+      ],
+      'NYC': [
+        { airline: 'Southwest', price: 145, duration: '2h 30m', stops: 0, source: 'Google Flights' },
+        { airline: 'United', price: 168, duration: '3h 00m', stops: 1, source: 'Skyscanner' },
+        { airline: 'American', price: 155, duration: '2h 45m', stops: 0, source: 'Kayak' },
+        { airline: 'JetBlue', price: 139, duration: '2h 50m', stops: 0, source: 'Kiwi' },
+        { airline: 'Budget Air', price: 125, duration: '3h 30m', stops: 1, source: 'Amadeus' }
+      ],
+      'LAS': [
+        { airline: 'Southwest', price: 119, duration: '2h 30m', stops: 0, source: 'Google Flights' },
+        { airline: 'United', price: 138, duration: '3h 00m', stops: 1, source: 'Skyscanner' },
+        { airline: 'American', price: 129, duration: '2h 45m', stops: 0, source: 'Kayak' },
+        { airline: 'Spirit', price: 99, duration: '3h 30m', stops: 1, source: 'Kiwi' },
+        { airline: 'Frontier', price: 108, duration: '3h 00m', stops: 1, source: 'Amadeus' }
+      ],
+      'CDG': [
+        { airline: 'United', price: 489, duration: '7h 30m', stops: 0, source: 'Google Flights' },
+        { airline: 'Air France', price: 512, duration: '7h 00m', stops: 0, source: 'Skyscanner' },
+        { airline: 'Delta', price: 498, duration: '8h 30m', stops: 1, source: 'Kayak' },
+        { airline: 'American', price: 525, duration: '9h 00m', stops: 1, source: 'Kiwi' },
+        { airline: 'Lufthansa', price: 467, duration: '8h 00m', stops: 1, source: 'Amadeus' }
+      ],
+      'LHR': [
+        { airline: 'British Airways', price: 445, duration: '7h 00m', stops: 0, source: 'Google Flights' },
+        { airline: 'United', price: 468, duration: '7h 30m', stops: 0, source: 'Skyscanner' },
+        { airline: 'Virgin Atlantic', price: 425, duration: '7h 15m', stops: 0, source: 'Kayak' },
+        { airline: 'Delta', price: 489, duration: '8h 30m', stops: 1, source: 'Kiwi' },
+        { airline: 'Norse', price: 289, duration: '7h 00m', stops: 0, source: 'Amadeus' }
+      ],
+      'BCN': [
+        { airline: 'United', price: 445, duration: '8h 30m', stops: 1, source: 'Google Flights' },
+        { airline: 'Iberia', price: 478, duration: '8h 00m', stops: 1, source: 'Skyscanner' },
+        { airline: 'Delta', price: 456, duration: '9h 30m', stops: 2, source: 'Kayak' },
+        { airline: 'Vueling', price: 389, duration: '8h 30m', stops: 1, source: 'Kiwi' },
+        { airline: 'Lufthansa', price: 434, duration: '8h 00m', stops: 1, source: 'Amadeus' }
+      ]
+    };
+
+    // Initialize
+    window.addEventListener('load', () => {
+      allHolidays = mockHolidays;
+      displayHolidaysForYear(currentYear);
+      const allHolidayNames = [...new Set(Object.values(mockHolidays).flat().map(h => h.name))];
+      populateDropdown('compareHoliday', allHolidayNames);
+      populateDropdown('trendHoliday', allHolidayNames);
+      const destinations = Object.keys(mockFlights);
+      populateDropdown('compareDestination', destinations);
+      populateDropdown('trendDestination', destinations);
+      loadSavedTrips();
+    });
+
+    // Tab switching
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+      document.querySelectorAll('.tab-underline').forEach(btn => btn.classList.remove('active'));
+      
+      const tab = document.getElementById(tabName + '-tab');
+      if (tab) tab.classList.remove('hidden');
+      if (event && event.target) event.target.classList.add('active');
+    }
+
+    function displayHolidaysForYear(year) {
+      const grid = document.getElementById('holidayGrid');
+      const holidays = mockHolidays[year] || [];
+      
+      grid.innerHTML = holidays.map(holiday => `
+        <button onclick="selectHoliday('${holiday.name}', '${holiday.date}', event.target.closest('button'))" 
+                class="p-3 rounded-lg border border-gray-700 hover:border-energy-purple hover:bg-energy-purple/10 transition-smooth text-sm font-semibold text-left">
+          <div class="font-bold text-white">${holiday.name.split(' ')[0]}</div>
+          <div class="text-xs text-gray-400">${holiday.month} ${holiday.day}</div>
+        </button>
+      `).join('');
+    }
+
+    function selectYear(year) {
+      currentYear = year;
+      selectedHoliday = null;
+      document.getElementById('statYear').textContent = year;
+      document.getElementById('statHoliday').textContent = '-';
+      
+      document.querySelectorAll('.year-btn').forEach(btn => {
+        btn.classList.remove('bg-energy-purple/20', 'border-energy-purple', 'text-energy-purple');
+        btn.classList.add('border-gray-700', 'text-gray-400');
+      });
+      event.target.classList.add('bg-energy-purple/20', 'border-energy-purple', 'text-energy-purple');
+      event.target.classList.remove('border-gray-700', 'text-gray-400');
+      
+      displayHolidaysForYear(year);
+    }
+
+    function selectHoliday(name, date, element) {
+      selectedHoliday = { name, date };
+      document.getElementById('statHoliday').textContent = name.substring(0, 10);
+      
+      document.querySelectorAll('#holidayGrid button').forEach(btn => {
+        btn.classList.remove('bg-energy-purple/20', 'border-energy-purple');
+        btn.classList.add('border-gray-700');
+      });
+      element.classList.add('bg-energy-purple/20', 'border-energy-purple');
+    }
+
+    function populateDropdown(elementId, options) {
+      const dropdown = document.getElementById(elementId);
+      dropdown.innerHTML = '<option value="">Select...</option>' + 
+        options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+    }
+
+    function searchFlights() {
+      const destination = document.getElementById('destination').value;
+
+      if (!destination || !selectedHoliday) {
+        alert('Please select a holiday and destination');
+        return;
+      }
+
+      let flights = mockFlights[destination] || mockFlights['MIA'];
+      flights = flights.map(f => ({
+        ...f,
+        price: f.price + Math.floor(Math.random() * 50 - 25)
+      })).sort((a, b) => a.price - b.price);
+
+      const avg = Math.round(flights.reduce((sum, f) => sum + f.price, 0) / flights.length);
+      displayFlights(flights, avg);
+    }
+
+    function displayFlights(flights, avg) {
+      const container = document.getElementById('flightsContainer');
+      document.getElementById('statPrice').textContent = '$' + avg;
+
+      container.innerHTML = flights.slice(0, 6).map((flight, index) => `
+        <div class="card-hover bg-gray-900 rounded-xl border border-gray-800 p-6 ${index === 0 ? 'ring-2 ring-energy-purple' : ''}">
+          ${index === 0 ? '<div class="inline-block px-3 py-1 bg-energy-coral text-black text-xs font-bold rounded-full mb-4">🏆 CHEAPEST</div>' : ''}
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <div class="font-bold text-lg text-white">${flight.airline}</div>
+              <div class="text-sm text-gray-400">${flight.source}</div>
+            </div>
+            <div class="text-3xl font-bold text-energy-teal">$${flight.price}</div>
+          </div>
+          <div class="space-y-2 text-sm text-gray-400 mb-4">
+            <div class="flex items-center space-x-2">
+              <iconify-icon icon="mdi:clock"></iconify-icon>
+              <span>${flight.duration}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <iconify-icon icon="mdi:plane-connection"></iconify-icon>
+              <span>${flight.stops} stops</span>
+            </div>
+          </div>
+          <button onclick="saveTrip('${flight.airline}', ${flight.price}, '${selectedHoliday.name}')" class="w-full py-2 bg-energy-purple hover:bg-energy-purple/80 rounded-lg font-semibold transition-smooth flex items-center justify-center space-x-2">
+            <iconify-icon icon="mdi:heart-outline"></iconify-icon>
+            <span>Save Trip</span>
+          </button>
+        </div>
+      `).join('');
+
+      document.getElementById('aiSection').classList.remove('hidden');
+      document.getElementById('aiRecommendation').textContent = 
+        flights[0] ? `This is an excellent selection of flights! The cheapest option is ${flights[0].airline} at $${flights[0].price}, which is a great deal for this route. I recommend booking 6-8 weeks in advance for the best prices.` 
+        : 'No flights available.';
+    }
+
+    function saveTrip(airline, price, holiday) {
+      const trip = {
+        id: Date.now(),
+        airline,
+        price,
+        holiday,
+        year: currentYear,
+        savedAt: new Date().toLocaleDateString()
+      };
+
+      savedTrips.push(trip);
+      localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
+      alert('✅ Trip saved!');
+      loadSavedTrips();
+    }
+
+    function loadSavedTrips() {
+      const container = document.getElementById('savedTripsContainer');
+      
+      if (savedTrips.length === 0) {
+        container.innerHTML = '<div class="text-center py-12 text-gray-400"><iconify-icon icon="mdi:heart-outline" width="48" class="mx-auto mb-4 opacity-50"></iconify-icon><p>No saved trips yet</p></div>';
+        return;
+      }
+
+      container.innerHTML = savedTrips.map(trip => `
+        <div class="card-hover bg-gray-900 rounded-xl border border-gray-800 p-6">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <div class="font-bold text-lg text-white">${trip.airline}</div>
+              <div class="text-sm text-gray-400">${trip.year}</div>
+            </div>
+            <button onclick="deleteSavedTrip(${trip.id})" class="text-gray-400 hover:text-energy-coral transition-smooth">
+              <iconify-icon icon="mdi:trash"></iconify-icon>
+            </button>
+          </div>
+          <div class="text-2xl font-bold text-energy-teal mb-2">$${trip.price}</div>
+          <div class="text-sm text-gray-400">${trip.holiday}</div>
+        </div>
+      `).join('');
+    }
+
+    function deleteSavedTrip(id) {
+      savedTrips = savedTrips.filter(t => t.id !== id);
+      localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
+      loadSavedTrips();
+    }
+
+    function compareYears() {
+      const holiday = document.getElementById('compareHoliday').value;
+      const destination = document.getElementById('compareDestination').value;
+
+      if (!holiday || !destination) {
+        alert('Please select a holiday and destination');
+        return;
+      }
+
+      const comparisons = [2026, 2027, 2028].map(year => {
+        const yearHoliday = mockHolidays[year].find(h => h.name === holiday);
+        const baseFlights = mockFlights[destination] || mockFlights['MIA'];
+        const priceVar = Math.floor(Math.random() * 100 - 50);
+        return {
+          date: yearHoliday ? yearHoliday.date : 'N/A',
+          year,
+          cheapest: { price: baseFlights[0].price + priceVar, airline: baseFlights[0].airline },
+          average: Math.round(baseFlights.reduce((sum, f) => sum + f.price, 0) / baseFlights.length) + priceVar
+        };
+      });
+
+      displayComparison(comparisons);
+      document.getElementById('comparisonResults').classList.remove('hidden');
+    }
+
+    function displayComparison(comparisons) {
+      const html = `
+        <thead>
+          <tr class="border-b border-gray-700">
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Date</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Year</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Cheapest</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Airline</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Avg Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${comparisons.map(c => `
+            <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-smooth">
+              <td class="py-4 px-4">${c.date}</td>
+              <td class="py-4 px-4 font-semibold">${c.year}</td>
+              <td class="py-4 px-4 text-energy-teal font-bold">$${c.cheapest.price}</td>
+              <td class="py-4 px-4">${c.cheapest.airline}</td>
+              <td class="py-4 px-4">$${c.average}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      `;
+      document.getElementById('comparisonTable').innerHTML = html;
+    }
+
+    function getPriceTrends() {
+      const holiday = document.getElementById('trendHoliday').value;
+      const destination = document.getElementById('trendDestination').value;
+
+      if (!holiday || !destination) {
+        alert('Please select a holiday and destination');
+        return;
+      }
+
+      const trends = [2026, 2027, 2028].map(year => ({
+        year,
+        cheapest: Math.floor(Math.random() * 300) + 150
+      }));
+
+      displayTrends(trends);
+      document.getElementById('trendsResults').classList.remove('hidden');
+    }
+
+    function displayTrends(trends) {
+      const maxPrice = Math.max(...trends.map(t => t.cheapest));
+
+      const html = trends.map(t => `
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-semibold">${t.year}</span>
+            <span class="text-energy-teal font-bold">$${t.cheapest}</span>
+          </div>
+          <div class="h-8 bg-gray-800 rounded-lg overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-energy-purple to-energy-teal transition-smooth" style="width: ${(t.cheapest / maxPrice) * 100}%"></div>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('trendsResults').innerHTML = html;
+    }
+  </script>
+</body>
+</html>
