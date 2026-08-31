@@ -413,7 +413,9 @@
     let allHolidays = {};
     let savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || [];
 
-    const API_URL = 'http://localhost:3001/api';
+    // Auto-detect API URL (production or local)
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_URL = isDevelopment ? 'http://localhost:3001/api' : '/api';
 
     // Initialize
     window.addEventListener('load', async () => {
