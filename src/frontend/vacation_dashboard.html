@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vacation Planner 2026 - Interactive Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --accent: #f97316;
+      --accent-dark: #ea580c;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-light: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --border: #475569;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, var(--bg) 0%, #1a2e4a 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding-bottom: 2rem;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .header p {
+      font-size: 1rem;
+      opacity: 0.95;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* Grid Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--primary);
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(37, 99, 235, 0.2);
+    }
+
+    /* Control Card */
+    .control-card {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, var(--surface) 0%, var(--surface-light) 100%);
+      border: 2px solid var(--primary);
+    }
+
+    .control-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+    }
+
+    /* Holiday Selector */
+    .holidays-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .holiday-btn {
+      padding: 1rem;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .holiday-btn:hover {
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    .holiday-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+    }
+
+    /* Slider Section */
+    .slider-section {
+      margin-bottom: 2rem;
+    }
+
+    .slider-section label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .slider-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 8px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      width: 28px;
+      height: 28px;
+      box-shadow: 0 6px 16px rgba(249, 115, 22, 0.6);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .slider-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 60px;
+      text-align: center;
+    }
+
+    /* Trip Summary */
+    .trip-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 2px solid var(--border);
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Filter & Sort */
+    .filters {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .filter-btn {
+      padding: 0.6rem 1.2rem;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-primary);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* Destination Cards */
+    .destinations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .destination-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .destination-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 50px rgba(249, 115, 22, 0.2);
+    }
+
+    .destination-header {
+      padding: 1.5rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .destination-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .destination-meta {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      background: var(--surface-light);
+      border-radius: 20px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .badge.region {
+      background: rgba(37, 99, 235, 0.2);
+      color: #60a5fa;
+    }
+
+    .badge.type {
+      background: rgba(249, 115, 22, 0.2);
+      color: #fb923c;
+    }
+
+    .destination-body {
+      padding: 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .destination-info {
+      margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .info-label {
+      color: var(--text-muted);
+    }
+
+    .info-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .best-for {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .best-for-tag {
+      font-size: 0.75rem;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* Price Section */
+    .price-section {
+      border-top: 2px solid var(--border);
+      padding-top: 1rem;
+    }
+
+    .price-class {
+      margin-bottom: 1rem;
+    }
+
+    .price-class:last-child {
+      margin-bottom: 0;
+    }
+
+    .price-class-name {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .price-display {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .price-amount {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .price-range {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .per-day {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Flight CTA */
+    .flight-cta {
+      width: 100%;
+      padding: 0.8rem;
+      margin-top: 1.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    .flight-cta:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+    }
+
+    .flight-cta:active {
+      transform: scale(0.98);
+    }
+
+    /* Empty State */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state p {
+      margin-bottom: 1rem;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .holidays-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .destinations-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .trip-summary {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .destination-card {
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    .destination-card:nth-child(2) { animation-delay: 0.1s; }
+    .destination-card:nth-child(3) { animation-delay: 0.2s; }
+    .destination-card:nth-child(4) { animation-delay: 0.3s; }
+    .destination-card:nth-child(5) { animation-delay: 0.4s; }
+    .destination-card:nth-child(6) { animation-delay: 0.5s; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>✈️ Vacation Planner 2026</h1>
+    <p>Plan your perfect holiday getaway with smart recommendations and real-time flight pricing</p>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Control Card -->
+    <div class="card control-card">
+      <h2>🎯 Plan Your Trip</h2>
+
+      <!-- Holiday Selector -->
+      <div>
+        <label style="display: block; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-secondary); font-weight: 600;">
+          Select a Bank Holiday
+        </label>
+        <div class="holidays-grid">
+          <button class="holiday-btn active" data-holiday="labor-day">
+            <div>Labor Day</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Sept 7</div>
+          </button>
+          <button class="holiday-btn" data-holiday="columbus-day">
+            <div>Columbus Day</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Oct 12</div>
+          </button>
+          <button class="holiday-btn" data-holiday="veterans-day">
+            <div>Veterans Day</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Nov 11</div>
+          </button>
+          <button class="holiday-btn" data-holiday="thanksgiving">
+            <div>Thanksgiving</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Nov 26</div>
+          </button>
+          <button class="holiday-btn" data-holiday="christmas">
+            <div>Christmas</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Dec 25</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Vacation Days Slider -->
+      <div class="slider-section">
+        <label>Add Vacation Days Before Holiday</label>
+        <div class="slider-wrapper">
+          <input type="range" id="vacationSlider" min="0" max="6" value="1" class="slider">
+          <div class="slider-value">1</div>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">
+          Drag to add 0-6 vacation days
+        </div>
+      </div>
+
+      <!-- Trip Summary Stats -->
+      <div class="trip-summary">
+        <div class="stat">
+          <div class="stat-value" id="daysOffValue">2</div>
+          <div class="stat-label">Days Off</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="tripDatesValue">-</div>
+          <div class="stat-label">Trip Dates</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="avgPriceValue">-</div>
+          <div class="stat-label">Avg Flight Cost</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="destinationsValue">0</div>
+          <div class="stat-label">Destinations</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <button class="filter-btn active" data-sort="price">Sort by Price</button>
+      <button class="filter-btn" data-sort="distance">Sort by Distance</button>
+      <button class="filter-btn" data-sort="rating">Sort by Type</button>
+    </div>
+
+    <!-- Destinations Grid -->
+    <div class="destinations-grid" id="destinationsContainer">
+      <div class="empty-state">
+        <div class="loading-spinner"></div>
+        <p>Loading destinations...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Embedded Backend -->
+  <script>
+    // ============================================================================
+    // BACKEND DATA & LOGIC
+    // ============================================================================
+
+    const HOLIDAYS_2026 = [
+      {
+        id: 'labor-day',
+        name: 'Labor Day',
+        date: '2026-09-07',
+        dayOfWeek: 'Monday',
+        minVacationDays: 1,
+        defaultVacationDays: 1,
+        suggestedDays: [1, 3],
+        totalDaysAvailable: 4,
+        description: 'Summer holiday'
+      },
+      {
+        id: 'columbus-day',
+        name: 'Columbus Day',
+        date: '2026-10-12',
+        dayOfWeek: 'Monday',
+        minVacationDays: 1,
+        defaultVacationDays: 1,
+        suggestedDays: [1, 3],
+        totalDaysAvailable: 4,
+        description: 'Fall holiday'
+      },
+      {
+        id: 'veterans-day',
+        name: 'Veterans Day',
+        date: '2026-11-11',
+        dayOfWeek: 'Wednesday',
+        minVacationDays: 3,
+        defaultVacationDays: 3,
+        suggestedDays: [2, 3, 5],
+        totalDaysAvailable: 5,
+        description: 'Mid-week holiday'
+      },
+      {
+        id: 'thanksgiving',
+        name: 'Thanksgiving',
+        date: '2026-11-26',
+        dayOfWeek: 'Thursday',
+        minVacationDays: 2,
+        defaultVacationDays: 3,
+        suggestedDays: [2, 3, 4, 5],
+        totalDaysAvailable: 6,
+        description: 'Best option'
+      },
+      {
+        id: 'christmas',
+        name: 'Christmas',
+        date: '2026-12-25',
+        dayOfWeek: 'Friday',
+        minVacationDays: 4,
+        defaultVacationDays: 5,
+        suggestedDays: [4, 5, 6],
+        totalDaysAvailable: 12,
+        description: 'Best option'
+      }
+    ];
+
+    const DESTINATIONS = [
+      { id: 'nyc', name: 'New York City', region: 'Northeast', country: 'USA', airports: ['JFK', 'LGA'], avgFlightCost: 180, type: 'City', bestFor: ['holidays', 'shopping', 'culture'], climate: ['cold'], hotelRange: '$150-$400/night' },
+      { id: 'miami', name: 'Miami', region: 'Southeast', country: 'USA', airports: ['MIA'], avgFlightCost: 220, type: 'Beach', bestFor: ['warm-weather', 'relaxation', 'nightlife'], climate: ['warm', 'tropical'], hotelRange: '$120-$350/night' },
+      { id: 'los-angeles', name: 'Los Angeles', region: 'West', country: 'USA', airports: ['LAX'], avgFlightCost: 280, type: 'City/Beach', bestFor: ['entertainment', 'sunshine'], climate: ['warm'], hotelRange: '$130-$380/night' },
+      { id: 'chicago', name: 'Chicago', region: 'Midwest', country: 'USA', airports: ['ORD'], avgFlightCost: 150, type: 'City', bestFor: ['architecture', 'food', 'museums'], climate: ['cold'], hotelRange: '$100-$300/night' },
+      { id: 'denver', name: 'Denver', region: 'Mountain', country: 'USA', airports: ['DEN'], avgFlightCost: 200, type: 'Mountain', bestFor: ['hiking', 'skiing', 'outdoors'], climate: ['cold'], hotelRange: '$110-$320/night' },
+      { id: 'new-orleans', name: 'New Orleans', region: 'South', country: 'USA', airports: ['MSY'], avgFlightCost: 190, type: 'City', bestFor: ['food', 'culture', 'nightlife'], climate: ['mild'], hotelRange: '$90-$250/night' },
+      { id: 'san-francisco', name: 'San Francisco', region: 'West', country: 'USA', airports: ['SFO'], avgFlightCost: 260, type: 'City/Coast', bestFor: ['tech', 'food', 'scenery'], climate: ['cool'], hotelRange: '$150-$400/night' },
+      { id: 'boston', name: 'Boston', region: 'Northeast', country: 'USA', airports: ['BOS'], avgFlightCost: 170, type: 'City', bestFor: ['history', 'food'], climate: ['cold'], hotelRange: '$120-$350/night' },
+      { id: 'key-west', name: 'Key West', region: 'Southeast', country: 'USA', airports: ['EYW'], avgFlightCost: 240, type: 'Beach', bestFor: ['beach', 'relaxation', 'nightlife'], climate: ['warm', 'tropical'], hotelRange: '$140-$400/night' },
+      { id: 'vegas', name: 'Las Vegas', region: 'Southwest', country: 'USA', airports: ['LAS'], avgFlightCost: 210, type: 'Entertainment', bestFor: ['entertainment', 'nightlife', 'shows'], climate: ['mild'], hotelRange: '$50-$250/night' },
+      { id: 'cancun', name: 'Cancún', region: 'Caribbean', country: 'Mexico', airports: ['CUN'], avgFlightCost: 320, type: 'Beach', bestFor: ['beach', 'all-inclusive', 'water-sports'], climate: ['warm', 'tropical'], hotelRange: '$80-$300/night' },
+      { id: 'los-cabos', name: 'Los Cabos', region: 'Mexico', country: 'Mexico', airports: ['SJD'], avgFlightCost: 340, type: 'Beach', bestFor: ['luxury', 'golf', 'beach'], climate: ['warm'], hotelRange: '$150-$500/night' },
+      { id: 'costa-rica', name: 'Costa Rica', region: 'Central America', country: 'Costa Rica', airports: ['SJO'], avgFlightCost: 380, type: 'Adventure', bestFor: ['nature', 'eco-tourism', 'adventure'], climate: ['warm', 'tropical'], hotelRange: '$70-$250/night' },
+      { id: 'belize', name: 'Belize', region: 'Central America', country: 'Belize', airports: ['BZE'], avgFlightCost: 360, type: 'Beach/Adventure', bestFor: ['beach', 'diving', 'adventure'], climate: ['warm', 'tropical'], hotelRange: '$80-$280/night' },
+      { id: 'caribbean', name: 'Caribbean Islands', region: 'Caribbean', country: 'Caribbean', airports: ['SJU'], avgFlightCost: 350, type: 'Beach', bestFor: ['beach', 'relaxation', 'water-sports'], climate: ['warm', 'tropical'], hotelRange: '$100-$350/night' },
+      { id: 'japan', name: 'Tokyo/Osaka', region: 'Asia', country: 'Japan', airports: ['HND', 'KIX'], avgFlightCost: 650, type: 'Culture/Food', bestFor: ['culture', 'food', 'technology'], climate: ['cool'], hotelRange: '$80-$300/night' },
+      { id: 'italy', name: 'Rome/Milan', region: 'Europe', country: 'Italy', airports: ['FCO', 'MXP'], avgFlightCost: 580, type: 'Culture/History', bestFor: ['history', 'food', 'art'], climate: ['cold'], hotelRange: '$80-$280/night' },
+      { id: 'france', name: 'Paris', region: 'Europe', country: 'France', airports: ['CDG'], avgFlightCost: 560, type: 'Culture/Romance', bestFor: ['romance', 'art', 'food'], climate: ['cold'], hotelRange: '$100-$350/night' },
+      { id: 'spain', name: 'Barcelona/Madrid', region: 'Europe', country: 'Spain', airports: ['BCN', 'MAD'], avgFlightCost: 520, type: 'Culture/Beach', bestFor: ['architecture', 'food', 'culture'], climate: ['mild'], hotelRange: '$70-$250/night' },
+      { id: 'uk', name: 'London', region: 'Europe', country: 'United Kingdom', airports: ['LHR'], avgFlightCost: 480, type: 'City/Culture', bestFor: ['history', 'shopping', 'culture'], climate: ['cold'], hotelRange: '$90-$300/night' }
+    ];
+
+    // ============================================================================
+    // BACKEND FUNCTIONS
+    // ============================================================================
+
+    function dateStringToObj(dateStr) {
+      return new Date(dateStr + 'T00:00:00Z');
+    }
+
+    function calculateVacationPeriod(holidayId, vacationDaysAdded) {
+      const holiday = HOLIDAYS_2026.find(h => h.id === holidayId);
+      if (!holiday) return null;
+
+      const holidayDate = dateStringToObj(holiday.date);
+      const dayOfWeek = holidayDate.getUTCDay();
+
+      const daysSinceFriday = (dayOfWeek + 2) % 7;
+      const fridayBefore = new Date(holidayDate);
+      fridayBefore.setUTCDate(fridayBefore.getUTCDate() - daysSinceFriday);
+
+      const daysUntilSunday = (7 - dayOfWeek) % 7 || 7;
+      const sundayAfter = new Date(holidayDate);
+      sundayAfter.setUTCDate(sundayAfter.getUTCDate() + daysUntilSunday);
+
+      let startDate, endDate, totalDaysOff;
+
+      if (vacationDaysAdded === 0) {
+        startDate = new Date(holidayDate);
+        endDate = new Date(holidayDate);
+        totalDaysOff = 1;
+      } else if (vacationDaysAdded <= 3) {
+        startDate = new Date(holidayDate);
+        startDate.setUTCDate(startDate.getUTCDate() - vacationDaysAdded);
+        endDate = new Date(holidayDate);
+        totalDaysOff = vacationDaysAdded + 1;
+      } else {
+        startDate = new Date(fridayBefore);
+        endDate = new Date(sundayAfter);
+        endDate.setUTCDate(endDate.getUTCDate() + (vacationDaysAdded - 3));
+        totalDaysOff = vacationDaysAdded + 2;
+      }
+
+      const startStr = startDate.toISOString().split('T')[0];
+      const endStr = endDate.toISOString().split('T')[0];
+
+      return {
+        holidayId,
+        holidayName: holiday.name,
+        vacationDaysAdded,
+        startDate: startStr,
+        endDate: endStr,
+        totalDaysOff,
+        dayRange: `${startStr} to ${endStr}`,
+        numberOfNights: totalDaysOff - 1
+      };
+    }
+
+    function calculateFlightPrice(destinationId, vacationPeriod, flightClass = 'economy') {
+      const destination = DESTINATIONS.find(d => d.id === destinationId);
+      if (!destination) return null;
+
+      let basePrice = destination.avgFlightCost;
+
+      const numDays = vacationPeriod.totalDaysOff;
+      if (numDays <= 3) {
+        basePrice *= 1.2;
+      } else if (numDays >= 10) {
+        basePrice *= 0.9;
+      }
+
+      const classMultipliers = {
+        'economy': 1.0,
+        'premium-economy': 1.35,
+        'business': 2.5,
+        'first': 4.0
+      };
+
+      const finalPrice = Math.round(basePrice * (classMultipliers[flightClass] || 1.0));
+      const variance = finalPrice * 0.15;
+      const priceMin = Math.round(finalPrice - variance);
+      const priceMax = Math.round(finalPrice + variance);
+
+      return {
+        destinationId,
+        destinationName: destination.name,
+        basePrice: Math.round(basePrice),
+        pricePerDay: Math.round(finalPrice / numDays),
+        flightClass,
+        estimatedPrice: finalPrice,
+        priceRange: { min: priceMin, max: priceMax },
+        tripDuration: numDays
+      };
+    }
+
+    function generateTripRecommendations(holidayId, vacationDaysAdded) {
+      const vacationPeriod = calculateVacationPeriod(holidayId, vacationDaysAdded);
+      if (!vacationPeriod) return { error: 'Invalid holiday' };
+
+      let recommendedDests = DESTINATIONS;
+
+      const numDays = vacationPeriod.totalDaysOff;
+      if (numDays <= 4) {
+        recommendedDests = recommendedDests.filter(d => d.country === 'USA' || d.region === 'Caribbean');
+      }
+
+      const holiday = HOLIDAYS_2026.find(h => h.id === holidayId);
+      if (holiday && (holiday.id === 'thanksgiving' || holiday.id === 'christmas')) {
+        recommendedDests = recommendedDests.sort((a, b) => {
+          const aWarm = a.climate.includes('warm') || a.climate.includes('tropical') ? 1 : 0;
+          const bWarm = b.climate.includes('warm') || b.climate.includes('tropical') ? 1 : 0;
+          return bWarm - aWarm;
+        });
+      }
+
+      const flightOptions = recommendedDests.map(dest => {
+        return {
+          economy: calculateFlightPrice(dest.id, vacationPeriod, 'economy'),
+          premiumEconomy: calculateFlightPrice(dest.id, vacationPeriod, 'premium-economy'),
+          destination: dest
+        };
+      });
+
+      return {
+        vacationPeriod,
+        numDestinations: flightOptions.length,
+        flightOptions,
+        summary: {
+          totalDaysOff: vacationPeriod.totalDaysOff,
+          tripDates: vacationPeriod.dayRange,
+          averageFlightCost: Math.round(
+            flightOptions.reduce((sum, opt) => sum + opt.economy.estimatedPrice, 0) / flightOptions.length
+          )
+        }
+      };
+    }
+
+    // ============================================================================
+    // FRONTEND LOGIC
+    // ============================================================================
+
+    let currentHoliday = 'labor-day';
+    let currentVacationDays = 1;
+    let currentRecommendations = null;
+    let currentSort = 'price';
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00Z');
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function updateRecommendations() {
+      currentRecommendations = generateTripRecommendations(currentHoliday, currentVacationDays);
+
+      // Update stats
+      document.getElementById('daysOffValue').textContent = currentRecommendations.vacationPeriod.totalDaysOff;
+      document.getElementById('tripDatesValue').textContent = formatDate(currentRecommendations.vacationPeriod.startDate);
+      document.getElementById('avgPriceValue').textContent = '$' + currentRecommendations.summary.averageFlightCost;
+      document.getElementById('destinationsValue').textContent = currentRecommendations.numDestinations;
+
+      renderDestinations();
+    }
+
+    function renderDestinations() {
+      const container = document.getElementById('destinationsContainer');
+
+      let sortedOptions = [...currentRecommendations.flightOptions];
+
+      if (currentSort === 'price') {
+        sortedOptions.sort((a, b) => a.economy.estimatedPrice - b.economy.estimatedPrice);
+      } else if (currentSort === 'distance') {
+        // Simulate distance sorting (in real app, use actual distance)
+        sortedOptions.sort((a, b) => a.destination.avgFlightCost - b.destination.avgFlightCost);
+      } else if (currentSort === 'rating') {
+        // Sort by type/region
+        const typeOrder = { 'Beach': 0, 'City': 1, 'Mountain': 2, 'Entertainment': 3, 'Adventure': 4 };
+        sortedOptions.sort((a, b) => {
+          const aOrder = typeOrder[a.destination.type.split('/')[0]] || 999;
+          const bOrder = typeOrder[b.destination.type.split('/')[0]] || 999;
+          return aOrder - bOrder;
+        });
+      }
+
+      container.innerHTML = sortedOptions.map((option, idx) => `
+        <div class="destination-card" style="animation-delay: ${idx * 0.05}s">
+          <div class="destination-header">
+            <div class="destination-name">${option.destination.name}</div>
+            <div class="destination-meta">
+              <span class="badge region">${option.destination.region}</span>
+              <span class="badge type">${option.destination.type}</span>
+            </div>
+          </div>
+
+          <div class="destination-body">
+            <div class="destination-info">
+              <div class="info-item">
+                <span class="info-label">Country</span>
+                <span class="info-value">${option.destination.country}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Hotels</span>
+                <span class="info-value">${option.destination.hotelRange}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Airports</span>
+                <span class="info-value">${option.destination.airports.join(', ')}</span>
+              </div>
+            </div>
+
+            <div class="best-for">
+              ${option.destination.bestFor.slice(0, 3).map(tag => `<span class="best-for-tag">${tag}</span>`).join('')}
+            </div>
+
+            <div class="price-section">
+              <div class="price-class">
+                <div class="price-class-name">Economy</div>
+                <div class="price-display">
+                  <span class="price-amount">$${option.economy.estimatedPrice}</span>
+                </div>
+                <div class="price-range">$${option.economy.priceRange.min} - $${option.economy.priceRange.max}</div>
+                <div class="per-day">$${option.economy.pricePerDay}/night</div>
+              </div>
+
+              <div class="price-class">
+                <div class="price-class-name">Premium Economy</div>
+                <div class="price-display">
+                  <span class="price-amount">$${option.premiumEconomy.estimatedPrice}</span>
+                </div>
+                <div class="price-range">$${option.premiumEconomy.priceRange.min} - $${option.premiumEconomy.priceRange.max}</div>
+              </div>
+            </div>
+
+            <button class="flight-cta" onclick="alert('Book Flight: ${option.destination.name} - $${option.economy.estimatedPrice} (${currentRecommendations.vacationPeriod.dayRange})')">
+              ✈️ Check Flights
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Event Listeners
+    document.querySelectorAll('.holiday-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.holiday-btn').forEach(b => b.classList.remove('active'));
+        e.target.closest('.holiday-btn').classList.add('active');
+        currentHoliday = e.target.closest('.holiday-btn').dataset.holiday;
+        updateRecommendations();
+      });
+    });
+
+    document.getElementById('vacationSlider').addEventListener('input', (e) => {
+      document.querySelector('.slider-value').textContent = e.target.value;
+      currentVacationDays = parseInt(e.target.value);
+      updateRecommendations();
+    });
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentSort = e.target.dataset.sort;
+        renderDestinations();
+      });
+    });
+
+    // Initial load
+    window.addEventListener('DOMContentLoaded', updateRecommendations);
+  </script>
+</body>
+</html>

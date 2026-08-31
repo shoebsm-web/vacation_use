@@ -1,0 +1,28 @@
+{
+  "name": "vacation-planner-2026",
+  "version": "1.0.0",
+  "description": "Smart vacation planning dashboard with bank holidays, flight pricing, and destination recommendations",
+  "main": "src/backend/vacation_backend.js",
+  "scripts": {
+    "start": "node src/backend/vacation_backend.js",
+    "test": "node src/backend/vacation_api_demo.js",
+    "dev": "npm run test"
+  },
+  "keywords": [
+    "vacation",
+    "travel",
+    "flight-booking",
+    "holiday-planner",
+    "bank-holidays",
+    "dashboard"
+  ],
+  "author": "Vacation Planner Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/vacation-planner-2026.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
