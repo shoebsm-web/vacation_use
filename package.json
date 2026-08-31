@@ -1,16 +1,20 @@
 {
-  "name": "vacation-planner-2026",
-  "version": "1.0.0",
-  "description": "Smart vacation planning dashboard with bank holidays, flight pricing, and destination recommendations",
-  "main": "src/backend/vacation_backend.js",
+  "name": "flight-comparison-vacation-planner",
+  "version": "2.0.0",
+  "description": "Vacation planner with flight comparison across multiple websites and AI recommendations",
+  "main": "src/backend/flight_comparison_server.js",
   "scripts": {
-    "start": "node src/backend/vacation_backend.js",
+    "start": "node src/backend/flight_comparison_server.js",
+    "dev": "node src/backend/flight_comparison_server.js",
     "test": "node src/backend/vacation_api_demo.js",
-    "dev": "npm run test"
+    "install-deps": "npm install express cors dotenv axios"
   },
   "keywords": [
     "vacation",
+    "flights",
+    "comparison",
     "travel",
+    "ai",
     "flight-booking",
     "holiday-planner",
     "bank-holidays",
@@ -20,9 +24,15 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/vacation-planner-2026.git"
+    "url": "https://github.com/shoebsm-web/vacation_use.git"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "axios": "^1.4.0"
   }
 }

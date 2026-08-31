@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Year Vacation Planner with AI</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2.8em;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 1.2em;
+      color: #94a3b8;
+      margin-bottom: 5px;
+    }
+
+    .tagline {
+      font-size: 0.95em;
+      color: #64748b;
+    }
+
+    /* Tabs Navigation */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+      overflow-x: auto;
+    }
+
+    .tab-button {
+      padding: 12px 24px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .tab-button:hover {
+      color: #60a5fa;
+    }
+
+    .tab-button.active {
+      color: #60a5fa;
+      border-bottom-color: #60a5fa;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 30px;
+      backdrop-filter: blur(10px);
+    }
+
+    .panel h2 {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+      color: #60a5fa;
+      border-bottom: 2px solid rgba(96, 165, 250, 0.3);
+      padding-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+
+    select, input[type="date"], input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      color: #e2e8f0;
+      font-size: 1em;
+    }
+
+    /* Year Selector */
+    .year-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .year-btn {
+      flex: 1;
+      padding: 10px;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      border-radius: 6px;
+      color: #60a5fa;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .year-btn:hover {
+      background: rgba(59, 130, 246, 0.3);
+    }
+
+    .year-btn.active {
+      background: linear-gradient(135deg, #3b82f6, #1e40af);
+      border-color: #60a5fa;
+      color: white;
+    }
+
+    /* Holiday Grid */
+    .holiday-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .holiday-card {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .holiday-card:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #60a5fa;
+      transform: translateY(-2px);
+    }
+
+    .holiday-card.selected {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.3));
+      border-color: #60a5fa;
+      box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2);
+    }
+
+    .holiday-name {
+      font-weight: 600;
+      color: #e2e8f0;
+      font-size: 0.95em;
+    }
+
+    .holiday-date {
+      font-size: 0.85em;
+      color: #94a3b8;
+      margin-top: 3px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .stat-card .value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #60a5fa;
+      margin-bottom: 5px;
+    }
+
+    .stat-card .label {
+      font-size: 0.9em;
+      color: #94a3b8;
+    }
+
+    .search-button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #3b82f6, #1e40af);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+
+    .search-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+    }
+
+    .search-button.loading {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .flights-section {
+      grid-column: 1 / -1;
+    }
+
+    .flights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .flight-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+      border: 2px solid rgba(59, 130, 246, 0.3);
+      border-radius: 10px;
+      padding: 20px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .flight-card:hover {
+      transform: translateY(-5px);
+      border-color: #60a5fa;
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+    }
+
+    .flight-card.cheapest {
+      border-color: #fbbf24;
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 146, 60, 0.1));
+    }
+
+    .flight-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 15px;
+    }
+
+    .airline-name {
+      font-weight: 600;
+      font-size: 1.1em;
+      color: #e2e8f0;
+    }
+
+    .price {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #60a5fa;
+    }
+
+    .cheapest-badge {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #0f172a;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: 600;
+    }
+
+    .flight-details {
+      color: #94a3b8;
+      font-size: 0.9em;
+      margin-bottom: 10px;
+    }
+
+    .source {
+      display: inline-block;
+      background: rgba(59, 130, 246, 0.2);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      color: #60a5fa;
+      margin-bottom: 10px;
+    }
+
+    .book-button {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(135deg, #3b82f6, #1e40af);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9em;
+    }
+
+    .book-button:hover {
+      box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .ai-recommendation {
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(139, 92, 246, 0.1));
+      border: 2px solid rgba(167, 139, 250, 0.4);
+      border-radius: 10px;
+      padding: 25px;
+      margin-top: 30px;
+      grid-column: 1 / -1;
+    }
+
+    .ai-recommendation h3 {
+      color: #a78bfa;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ai-text {
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(59, 130, 246, 0.2);
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .price-comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .price-comparison-table th,
+    .price-comparison-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .price-comparison-table th {
+      background: rgba(59, 130, 246, 0.1);
+      color: #60a5fa;
+      font-weight: 600;
+    }
+
+    .price-comparison-table tr:hover {
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .price-trend-chart {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .trend-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .trend-year {
+      width: 60px;
+      color: #cbd5e1;
+      font-weight: 500;
+    }
+
+    .trend-bar-fill {
+      height: 30px;
+      background: linear-gradient(90deg, #3b82f6, #1e40af);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
+      color: white;
+      font-weight: 600;
+      font-size: 0.85em;
+    }
+
+    .saved-trips {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .saved-trip-card {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 8px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .saved-trip-card:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #60a5fa;
+    }
+
+    .trip-info {
+      color: #cbd5e1;
+      font-size: 0.95em;
+    }
+
+    .trip-price {
+      color: #60a5fa;
+      font-weight: 600;
+      font-size: 1.1em;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2em;
+      }
+
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .flights-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tabs {
+        flex-wrap: wrap;
+      }
+
+      .holiday-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>✈️ Multi-Year Vacation Planner</h1>
+      <p class="subtitle">Plan vacations for 2026, 2027, and beyond</p>
+      <p class="tagline">AI-powered flight search across 5+ websites • Compare prices across years</p>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab-button active" onclick="switchTab('search')">🔍 Search Flights</button>
+      <button class="tab-button" onclick="switchTab('compare')">📊 Compare Years</button>
+      <button class="tab-button" onclick="switchTab('trends')">📈 Price Trends</button>
+      <button class="tab-button" onclick="switchTab('saved')">❤️ Saved Trips</button>
+    </div>
+
+    <!-- TAB 1: SEARCH FLIGHTS -->
+    <div id="search" class="tab-content active">
+      <div class="main-grid">
+        <!-- Trip Planner -->
+        <div class="panel">
+          <h2>📅 Plan Your Trip</h2>
+
+          <div class="form-group">
+            <label>Select Year</label>
+            <div class="year-selector">
+              <button class="year-btn active" onclick="selectYear(2026)">2026</button>
+              <button class="year-btn" onclick="selectYear(2027)">2027</button>
+              <button class="year-btn" onclick="selectYear(2028)">2028</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Holiday</label>
+            <div id="holidayGrid" class="holiday-grid">
+              <!-- Holidays will be loaded here -->
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Destination</label>
+            <select id="destination">
+              <option value="">Select a destination</option>
+              <option value="MIA">Miami, FL (Warm)</option>
+              <option value="LAX">Los Angeles, CA (Warm)</option>
+              <option value="CUN">Cancun, Mexico (Warm)</option>
+              <option value="NYC">New York, NY (Cold)</option>
+              <option value="LAS">Las Vegas, NV (Warm)</option>
+              <option value="CDG">Paris, France (Cool)</option>
+              <option value="LHR">London, UK (Cool)</option>
+              <option value="BCN">Barcelona, Spain (Warm)</option>
+              <option value="ORD">Chicago, IL (Cold)</option>
+              <option value="SFO">San Francisco, CA (Cool)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>From Airport</label>
+            <input type="text" id="fromAirport" placeholder="e.g., DFW" value="DFW">
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="value" id="selectedYear">2026</div>
+              <div class="label">Year Selected</div>
+            </div>
+            <div class="stat-card">
+              <div class="value" id="selectedHoliday">-</div>
+              <div class="label">Holiday</div>
+            </div>
+          </div>
+
+          <button class="search-button" id="searchButton" onclick="searchFlights()">
+            🔍 Find Cheapest Flights
+          </button>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="panel">
+          <h2>💡 Smart Features</h2>
+          <div style="line-height: 1.8; color: #cbd5e1;">
+            <p style="margin-bottom: 15px;">
+              <strong style="color: #60a5fa;">📅 Multi-Year Planning</strong><br>
+              Compare vacation options across 2026, 2027, and 2028. Plan ahead and find the best deals!
+            </p>
+            <p style="margin-bottom: 15px;">
+              <strong style="color: #60a5fa;">💰 Price Comparison</strong><br>
+              See all flights from 5+ websites sorted by price. Instant savings with one click!
+            </p>
+            <p style="margin-bottom: 15px;">
+              <strong style="color: #60a5fa;">🤖 AI Recommendations</strong><br>
+              Claude AI analyzes all options and recommends the absolute best deal.
+            </p>
+            <p style="margin-bottom: 15px;">
+              <strong style="color: #60a5fa;">📊 Price Trends</strong><br>
+              See how flight prices change year to year for the same holiday. Book at the right time!
+            </p>
+            <p>
+              <strong style="color: #60a5fa;">❤️ Save Trips</strong><br>
+              Keep your favorite vacation plans for quick access later.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flights Results -->
+      <div id="resultsSection" style="display: none;">
+        <div class="panel flights-section">
+          <h2>🎫 Flight Results</h2>
+          <div id="flightsContainer" class="flights-grid">
+            <!-- Flight cards will be inserted here -->
+          </div>
+        </div>
+
+        <!-- AI Recommendation -->
+        <div class="panel ai-recommendation">
+          <h3>🤖 AI Recommendation</h3>
+          <p class="ai-text" id="aiRecommendation">Analyzing flights...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: COMPARE YEARS -->
+    <div id="compare" class="tab-content">
+      <div class="panel">
+        <h2>📊 Compare Holiday Prices Across Years</h2>
+        
+        <div class="form-group">
+          <label>Holiday to Compare</label>
+          <select id="compareHoliday">
+            <option value="">Select holiday...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>To Airport</label>
+          <select id="compareDestination">
+            <option value="">Select destination...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>From Airport</label>
+          <input type="text" id="compareFromAirport" placeholder="e.g., DFW" value="DFW">
+        </div>
+
+        <button class="search-button" onclick="compareYears()">
+          📊 Compare Prices Across Years
+        </button>
+
+        <div id="comparisonResults" style="display: none; margin-top: 30px;">
+          <div id="comparisonTable"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: PRICE TRENDS -->
+    <div id="trends" class="tab-content">
+      <div class="panel">
+        <h2>📈 Price Trends by Holiday</h2>
+
+        <div class="form-group">
+          <label>Holiday</label>
+          <select id="trendHoliday">
+            <option value="">Select holiday...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Destination</label>
+          <select id="trendDestination">
+            <option value="">Select destination...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>From Airport</label>
+          <input type="text" id="trendFromAirport" placeholder="e.g., DFW" value="DFW">
+        </div>
+
+        <button class="search-button" onclick="getPriceTrends()">
+          📈 Show Price Trends
+        </button>
+
+        <div id="trendsResults" style="display: none; margin-top: 30px;">
+          <div class="price-trend-chart" id="trendChart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: SAVED TRIPS -->
+    <div id="saved" class="tab-content">
+      <div class="panel">
+        <h2>❤️ Your Saved Vacations</h2>
+        <p style="color: #94a3b8; margin-bottom: 20px;">
+          Your favorite trips are saved locally on your computer. No account needed!
+        </p>
+        <div id="savedTripsContainer" class="saved-trips">
+          <p style="color: #94a3b8;">No saved trips yet. Search for flights and save your favorites!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentYear = 2026;
+    let selectedHoliday = null;
+    let allHolidays = {};
+    let savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || [];
+
+    const API_URL = 'http://localhost:3001/api';
+
+    // Initialize
+    window.addEventListener('load', async () => {
+      await loadHolidays();
+      loadSavedTrips();
+    });
+
+    // Tab switching
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    // Load holidays from API
+    async function loadHolidays() {
+      try {
+        const response = await fetch(`${API_URL}/holidays`);
+        const data = await response.json();
+        allHolidays = data.holidays;
+        
+        // Populate holiday grid for current year
+        displayHolidaysForYear(currentYear);
+        
+        // Populate compare and trends dropdowns
+        const allHolidayNames = [...new Set(Object.values(data.holidays).flat().map(h => h.name))];
+        populateDropdown('compareHoliday', allHolidayNames);
+        populateDropdown('trendHoliday', allHolidayNames);
+      } catch (error) {
+        console.error('Error loading holidays:', error);
+      }
+    }
+
+    function displayHolidaysForYear(year) {
+      const grid = document.getElementById('holidayGrid');
+      const holidays = allHolidays[year] || [];
+      
+      grid.innerHTML = holidays.map(holiday => `
+        <div class="holiday-card ${selectedHoliday?.date === holiday.date ? 'selected' : ''}" 
+             onclick="selectHoliday('${holiday.name}', '${holiday.date}', this)">
+          <div class="holiday-name">${holiday.name}</div>
+          <div class="holiday-date">${holiday.month} ${holiday.day}</div>
+        </div>
+      `).join('');
+    }
+
+    function selectYear(year) {
+      currentYear = year;
+      selectedHoliday = null;
+      document.getElementById('selectedYear').textContent = year;
+      document.getElementById('selectedHoliday').textContent = '-';
+      
+      document.querySelectorAll('.year-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      displayHolidaysForYear(year);
+    }
+
+    function selectHoliday(name, date, element) {
+      selectedHoliday = { name, date };
+      document.getElementById('selectedHoliday').textContent = name;
+      
+      document.querySelectorAll('.holiday-card').forEach(card => card.classList.remove('selected'));
+      element.classList.add('selected');
+    }
+
+    function populateDropdown(elementId, options) {
+      const dropdown = document.getElementById(elementId);
+      dropdown.innerHTML = '<option value="">Select...</option>' + 
+        options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+    }
+
+    async function searchFlights() {
+      const fromAirport = document.getElementById('fromAirport').value.toUpperCase();
+      const destination = document.getElementById('destination').value;
+
+      if (!fromAirport || !destination || !selectedHoliday) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      const button = document.getElementById('searchButton');
+      button.classList.add('loading');
+      button.textContent = '🔄 Searching...';
+
+      try {
+        const response = await fetch(`${API_URL}/search-flights`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAirport: fromAirport,
+            toAirport: destination,
+            departDate: selectedHoliday.date
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.flights.length > 0) {
+          displayFlights(data.flights, data.recommendation, data.summary);
+          document.getElementById('resultsSection').style.display = 'block';
+        } else {
+          alert('No flights found for this route');
+        }
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      } finally {
+        button.classList.remove('loading');
+        button.textContent = '🔍 Find Cheapest Flights';
+      }
+    }
+
+    function displayFlights(flights, recommendation, summary) {
+      const container = document.getElementById('flightsContainer');
+      container.innerHTML = flights.slice(0, 10).map((flight, index) => `
+        <div class="flight-card ${index === 0 ? 'cheapest' : ''}">
+          ${index === 0 ? '<div class="cheapest-badge">🏆 Cheapest</div>' : ''}
+          <div class="flight-header">
+            <div class="airline-name">${flight.airline}</div>
+            <div class="price">$${flight.price}</div>
+          </div>
+          <div class="flight-details">
+            ⏱️ ${flight.duration} • ${flight.stops} stops
+          </div>
+          <div class="source">${flight.source}</div>
+          <button class="book-button" onclick="saveTrip('${flight.airline}', ${flight.price}, '${selectedHoliday.name}')">
+            ❤️ Save Trip
+          </button>
+        </div>
+      `).join('');
+
+      document.getElementById('aiRecommendation').textContent = recommendation || 'Analyzing flights...';
+    }
+
+    function saveTrip(airline, price, holiday) {
+      const trip = {
+        id: Date.now(),
+        airline,
+        price,
+        holiday,
+        year: currentYear,
+        savedAt: new Date().toLocaleDateString()
+      };
+
+      savedTrips.push(trip);
+      localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
+      alert('✅ Trip saved to your favorites!');
+      loadSavedTrips();
+    }
+
+    function loadSavedTrips() {
+      const container = document.getElementById('savedTripsContainer');
+      
+      if (savedTrips.length === 0) {
+        container.innerHTML = '<p style="color: #94a3b8;">No saved trips yet. Search and save your favorites!</p>';
+        return;
+      }
+
+      container.innerHTML = savedTrips.map(trip => `
+        <div class="saved-trip-card">
+          <div style="color: #94a3b8; font-size: 0.85em;">📅 ${trip.year}</div>
+          <div class="trip-info">${trip.holiday}</div>
+          <div class="trip-info">${trip.airline}</div>
+          <div class="trip-price">$${trip.price}</div>
+          <button class="book-button" onclick="deleteSavedTrip(${trip.id})" style="margin-top: 10px; font-size: 0.85em;">
+            🗑️ Delete
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function deleteSavedTrip(id) {
+      savedTrips = savedTrips.filter(t => t.id !== id);
+      localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
+      loadSavedTrips();
+    }
+
+    async function compareYears() {
+      const holiday = document.getElementById('compareHoliday').value;
+      const destination = document.getElementById('compareDestination').value;
+      const fromAirport = document.getElementById('compareFromAirport').value.toUpperCase();
+
+      if (!holiday || !destination || !fromAirport) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      // Get dates for all years
+      const dates = [];
+      for (const year of [2026, 2027, 2028]) {
+        const yearHolidays = allHolidays[year] || [];
+        const holidayData = yearHolidays.find(h => h.name === holiday);
+        if (holidayData) dates.push(holidayData.date);
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/compare-dates`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAirport,
+            toAirport: destination,
+            dates
+          })
+        });
+
+        const data = await response.json();
+        displayComparison(data.comparisons);
+        document.getElementById('comparisonResults').style.display = 'block';
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    function displayComparison(comparisons) {
+      const html = `
+        <table class="price-comparison-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Year</th>
+              <th>Cheapest Price</th>
+              <th>Airline</th>
+              <th>Avg Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${comparisons.map(c => `
+              <tr>
+                <td>${c.date}</td>
+                <td>${c.date.split('-')[0]}</td>
+                <td style="color: #60a5fa; font-weight: 600;">$${c.cheapest.price}</td>
+                <td>${c.cheapest.airline}</td>
+                <td>$${c.average}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      document.getElementById('comparisonTable').innerHTML = html;
+    }
+
+    async function getPriceTrends() {
+      const holiday = document.getElementById('trendHoliday').value;
+      const destination = document.getElementById('trendDestination').value;
+      const fromAirport = document.getElementById('trendFromAirport').value.toUpperCase();
+
+      if (!holiday || !destination || !fromAirport) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/price-trends`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAirport,
+            toAirport: destination,
+            holiday,
+            years: [2026, 2027, 2028]
+          })
+        });
+
+        const data = await response.json();
+        displayTrends(data.trends);
+        document.getElementById('trendsResults').style.display = 'block';
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    function displayTrends(trends) {
+      const maxPrice = Math.max(...trends.map(t => t.cheapest));
+      const scale = 300 / maxPrice;
+
+      const html = trends.map(t => `
+        <div class="trend-bar">
+          <div class="trend-year">${t.year}</div>
+          <div class="trend-bar-fill" style="width: ${t.cheapest * scale}px;">
+            $${t.cheapest}
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('trendChart').innerHTML = html;
+    }
+  </script>
+</body>
+</html>

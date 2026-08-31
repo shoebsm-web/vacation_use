@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyPulse | Bold Flight Booking</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link href="https://api.fontshare.com/v2/css?f[]=panchang@700,800&f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Satoshi', sans-serif;
+    }
+    
+    .font-display {
+      font-family: 'Panchang', sans-serif;
+    }
+    
+    /* Custom gradient background */
+    .gradient-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .gradient-hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    
+    .gradient-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -50%;
+      left: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(20, 184, 166, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    
+    /* Energy gradient text */
+    .text-energy-gradient {
+      background: linear-gradient(135deg, #6366f1 0%, #14b8a6 50%, #ff7e5f 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Smooth transitions */
+    .transition-smooth {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Card hover effect */
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2);
+    }
+    
+    /* Tab animation */
+    .tab-underline {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .tab-underline::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #6366f1, #14b8a6);
+      transition: width 0.3s ease;
+    }
+    
+    .tab-underline.active::after {
+      width: 100%;
+    }
+    
+    /* Smooth animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .animate-fade-in-up {
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+    
+    .animate-slide-in-right {
+      animation: slideInRight 0.6s ease-out forwards;
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(99, 102, 241, 0.2);
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Glow effect */
+    .glow-effect {
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-energy-midnight text-gray-100">
+  <div class="min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="border-b border-gray-800 sticky top-0 z-50 backdrop-blur-sm bg-energy-midnight/90">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <iconify-icon icon="game-icons:flying-rocket" width="32" class="text-energy-purple"></iconify-icon>
+          <span class="font-display text-2xl font-bold text-energy-gradient">SkyPulse</span>
+        </div>
+        <div class="hidden md:flex items-center space-x-8">
+          <button onclick="switchTab('search')" class="tab-underline active transition-smooth hover:text-energy-purple">Search</button>
+          <button onclick="switchTab('compare')" class="tab-underline transition-smooth hover:text-energy-purple">Compare</button>
+          <button onclick="switchTab('trends')" class="tab-underline transition-smooth hover:text-energy-purple">Trends</button>
+          <button onclick="switchTab('saved')" class="tab-underline transition-smooth hover:text-energy-purple">Saved</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-hero py-20 px-4 relative">
+      <div class="max-w-7xl mx-auto relative z-10">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+          <div class="animate-fade-in-up">
+            <h1 class="font-display text-5xl md:text-6xl font-bold mb-6">
+              <span class="block text-white">Plan Your</span>
+              <span class="text-energy-gradient">Dream Vacations</span>
+            </h1>
+            <p class="text-gray-400 text-lg mb-8 max-w-xl">
+              Explore flights across 5+ airlines, compare prices across years, and get AI-powered recommendations. All free.
+            </p>
+            <div class="flex flex-wrap gap-4">
+              <button onclick="switchTab('search')" class="px-8 py-3 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold hover:shadow-lg transition-smooth hover:scale-105">
+                Start Planning
+              </button>
+              <button class="px-8 py-3 border border-gray-700 rounded-lg font-semibold hover:border-energy-purple transition-smooth">
+                Learn More
+              </button>
+            </div>
+          </div>
+          <div class="animate-slide-in-right hidden md:block">
+            <div class="relative">
+              <div class="absolute -inset-4 bg-gradient-to-r from-energy-purple to-energy-teal opacity-20 blur-lg rounded-lg"></div>
+              <div class="relative bg-gray-900 rounded-lg p-8 border border-gray-800">
+                <iconify-icon icon="game-icons:flying-rocket" width="100" class="text-energy-teal opacity-50 mb-4"></iconify-icon>
+                <p class="text-gray-400">Compare flights from:</p>
+                <div class="grid grid-cols-2 gap-2 mt-4 text-sm">
+                  <div class="flex items-center space-x-2"><iconify-icon icon="simple-icons:google" class="text-energy-purple"></iconify-icon><span>Google Flights</span></div>
+                  <div class="flex items-center space-x-2"><iconify-icon icon="mdi:plane" class="text-energy-teal"></iconify-icon><span>Skyscanner</span></div>
+                  <div class="flex items-center space-x-2"><iconify-icon icon="mdi:plane-car" class="text-energy-coral"></iconify-icon><span>Kayak</span></div>
+                  <div class="flex items-center space-x-2"><iconify-icon icon="mdi:plane-check" class="text-energy-purple"></iconify-icon><span>Kiwi</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="flex-1 max-w-7xl mx-auto w-full px-4 py-12">
+      <!-- SEARCH TAB -->
+      <div id="search-tab" class="tab-content">
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- Search Panel -->
+          <div class="md:col-span-1">
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-8 sticky top-24">
+              <h2 class="font-display text-2xl font-bold mb-6">Find Your Flight</h2>
+              
+              <!-- Year Selector -->
+              <div class="mb-6">
+                <label class="block text-sm font-semibold mb-3 text-gray-300">Select Year</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <button onclick="selectYear(2026)" class="year-btn active py-2 rounded-lg bg-energy-purple/20 border border-energy-purple text-energy-purple font-semibold transition-smooth hover:bg-energy-purple/30">2026</button>
+                  <button onclick="selectYear(2027)" class="year-btn py-2 rounded-lg border border-gray-700 text-gray-400 font-semibold transition-smooth hover:border-energy-purple">2027</button>
+                  <button onclick="selectYear(2028)" class="year-btn py-2 rounded-lg border border-gray-700 text-gray-400 font-semibold transition-smooth hover:border-energy-purple">2028</button>
+                </div>
+              </div>
+
+              <!-- Holiday Selection -->
+              <div class="mb-6">
+                <label class="block text-sm font-semibold mb-3 text-gray-300">Holiday</label>
+                <div id="holidayGrid" class="grid grid-cols-2 gap-2">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+              <!-- Destination -->
+              <div class="mb-6">
+                <label class="block text-sm font-semibold mb-3 text-gray-300">Destination</label>
+                <select id="destination" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none transition-smooth">
+                  <option value="">Select destination</option>
+                  <option value="MIA">Miami, FL 🌴</option>
+                  <option value="LAX">Los Angeles, CA ☀️</option>
+                  <option value="CUN">Cancun, Mexico 🏖️</option>
+                  <option value="NYC">New York, NY 🗽</option>
+                  <option value="LAS">Las Vegas, NV 🎰</option>
+                  <option value="CDG">Paris, France 🗼</option>
+                  <option value="LHR">London, UK 🇬🇧</option>
+                  <option value="BCN">Barcelona, Spain 🇪🇸</option>
+                </select>
+              </div>
+
+              <!-- From Airport -->
+              <div class="mb-8">
+                <label class="block text-sm font-semibold mb-3 text-gray-300">From Airport</label>
+                <input type="text" id="fromAirport" value="DFW" placeholder="e.g., DFW" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:border-energy-purple focus:outline-none transition-smooth">
+              </div>
+
+              <!-- Search Button -->
+              <button onclick="searchFlights()" class="w-full py-3 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold text-white font-bold hover:shadow-lg transition-smooth hover:scale-105">
+                <span class="flex items-center justify-center space-x-2">
+                  <iconify-icon icon="mdi:search"></iconify-icon>
+                  <span>Search Flights</span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Results Panel -->
+          <div class="md:col-span-2">
+            <!-- Stats -->
+            <div class="grid grid-cols-3 gap-4 mb-8">
+              <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 text-center">
+                <div id="statYear" class="text-3xl font-bold text-energy-purple">2026</div>
+                <p class="text-gray-400 text-sm mt-2">Year Selected</p>
+              </div>
+              <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 text-center">
+                <div id="statHoliday" class="text-3xl font-bold text-energy-teal">-</div>
+                <p class="text-gray-400 text-sm mt-2">Holiday</p>
+              </div>
+              <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 text-center">
+                <div id="statPrice" class="text-3xl font-bold text-energy-coral">$0</div>
+                <p class="text-gray-400 text-sm mt-2">Avg Price</p>
+              </div>
+            </div>
+
+            <!-- Flights Grid -->
+            <div id="flightsContainer" class="grid grid-cols-1 gap-4">
+              <div class="text-center py-12 text-gray-400">
+                <iconify-icon icon="mdi:airplane" width="48" class="mx-auto mb-4 opacity-50"></iconify-icon>
+                <p>Select a holiday and destination to search flights</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARE TAB -->
+      <div id="compare-tab" class="tab-content hidden">
+        <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
+          <h2 class="font-display text-3xl font-bold mb-6">Compare Prices Across Years</h2>
+          
+          <div class="grid md:grid-cols-4 gap-4 mb-8">
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Holiday</label>
+              <select id="compareHoliday" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="">Select holiday</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Destination</label>
+              <select id="compareDestination" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="">Select destination</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">From Airport</label>
+              <input type="text" id="compareFromAirport" value="DFW" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+            </div>
+            <div class="flex items-end">
+              <button onclick="compareYears()" class="w-full py-2 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold hover:shadow-lg transition-smooth">
+                Compare
+              </button>
+            </div>
+          </div>
+
+          <!-- Comparison Table -->
+          <div id="comparisonResults" class="hidden">
+            <div class="overflow-x-auto">
+              <table id="comparisonTable" class="w-full">
+                <!-- Populated by JS -->
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRENDS TAB -->
+      <div id="trends-tab" class="tab-content hidden">
+        <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
+          <h2 class="font-display text-3xl font-bold mb-6">Price Trends</h2>
+          
+          <div class="grid md:grid-cols-4 gap-4 mb-8">
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Holiday</label>
+              <select id="trendHoliday" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="">Select holiday</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Destination</label>
+              <select id="trendDestination" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="">Select destination</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">From Airport</label>
+              <input type="text" id="trendFromAirport" value="DFW" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+            </div>
+            <div class="flex items-end">
+              <button onclick="getPriceTrends()" class="w-full py-2 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold hover:shadow-lg transition-smooth">
+                Show Trends
+              </button>
+            </div>
+          </div>
+
+          <!-- Trends Chart -->
+          <div id="trendsResults" class="hidden">
+            <div class="space-y-4">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SAVED TRIPS TAB -->
+      <div id="saved-tab" class="tab-content hidden">
+        <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
+          <h2 class="font-display text-3xl font-bold mb-6">Your Saved Trips</h2>
+          
+          <div id="savedTripsContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="text-center py-12 text-gray-400">
+              <iconify-icon icon="mdi:heart-outline" width="48" class="mx-auto mb-4 opacity-50"></iconify-icon>
+              <p>No saved trips yet. Search and save your favorites!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Recommendation Section -->
+    <div id="aiSection" class="hidden max-w-7xl mx-auto w-full px-4 py-8">
+      <div class="bg-gradient-to-r from-energy-purple/20 to-energy-teal/20 rounded-xl border border-energy-purple/30 p-8">
+        <div class="flex items-start space-x-4">
+          <div class="p-3 bg-energy-purple/20 rounded-lg">
+            <iconify-icon icon="game-icons:ai" width="32" class="text-energy-purple"></iconify-icon>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-2 flex items-center space-x-2">
+              <span>AI Recommendation</span>
+              <span class="text-energy-teal">by Claude</span>
+            </h3>
+            <p id="aiRecommendation" class="text-gray-300 leading-relaxed">Analyzing flights...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 mt-20 py-12 px-4">
+      <div class="max-w-7xl mx-auto text-center text-gray-400 text-sm">
+        <p>SkyPulse © 2026. Powered by AI. Completely free. No hidden fees.</p>
+        <p class="mt-2">Search flights from Google Flights, Skyscanner, Kayak, Kiwi, and Amadeus</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    let currentYear = 2026;
+    let selectedHoliday = null;
+    let allHolidays = {};
+    let savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || [];
+
+    const API_URL = 'http://localhost:3001/api';
+
+    // Initialize
+    window.addEventListener('load', async () => {
+      await loadHolidays();
+      loadSavedTrips();
+    });
+
+    // Tab switching
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+      document.querySelectorAll('.tab-underline').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(tabName + '-tab').classList.remove('hidden');
+      event.target.classList.add('active');
+    }
+
+    // Load holidays from API
+    async function loadHolidays() {
+      try {
+        const response = await fetch(`${API_URL}/holidays`);
+        const data = await response.json();
+        allHolidays = data.holidays;
+        
+        displayHolidaysForYear(currentYear);
+        
+        const allHolidayNames = [...new Set(Object.values(data.holidays).flat().map(h => h.name))];
+        populateDropdown('compareHoliday', allHolidayNames);
+        populateDropdown('trendHoliday', allHolidayNames);
+      } catch (error) {
+        console.error('Error loading holidays:', error);
+      }
+    }
+
+    function displayHolidaysForYear(year) {
+      const grid = document.getElementById('holidayGrid');
+      const holidays = allHolidays[year] || [];
+      
+      grid.innerHTML = holidays.map(holiday => `
+        <button onclick="selectHoliday('${holiday.name}', '${holiday.date}', this)" 
+                class="p-3 rounded-lg border border-gray-700 hover:border-energy-purple hover:bg-energy-purple/10 transition-smooth text-sm font-semibold text-left">
+          <div class="font-bold text-white">${holiday.name.split(' ')[0]}</div>
+          <div class="text-xs text-gray-400">${holiday.month} ${holiday.day}</div>
+        </button>
+      `).join('');
+    }
+
+    function selectYear(year) {
+      currentYear = year;
+      selectedHoliday = null;
+      document.getElementById('statYear').textContent = year;
+      document.getElementById('statHoliday').textContent = '-';
+      
+      document.querySelectorAll('.year-btn').forEach(btn => {
+        btn.classList.remove('bg-energy-purple/20', 'border-energy-purple', 'text-energy-purple');
+        btn.classList.add('border-gray-700', 'text-gray-400');
+      });
+      event.target.classList.add('bg-energy-purple/20', 'border-energy-purple', 'text-energy-purple');
+      event.target.classList.remove('border-gray-700', 'text-gray-400');
+      
+      displayHolidaysForYear(year);
+    }
+
+    function selectHoliday(name, date, element) {
+      selectedHoliday = { name, date };
+      document.getElementById('statHoliday').textContent = name.substring(0, 10);
+      
+      document.querySelectorAll('#holidayGrid button').forEach(btn => {
+        btn.classList.remove('bg-energy-purple/20', 'border-energy-purple');
+        btn.classList.add('border-gray-700');
+      });
+      element.classList.add('bg-energy-purple/20', 'border-energy-purple');
+    }
+
+    function populateDropdown(elementId, options) {
+      const dropdown = document.getElementById(elementId);
+      dropdown.innerHTML = '<option value="">Select...</option>' + 
+        options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+    }
+
+    async function searchFlights() {
+      const fromAirport = document.getElementById('fromAirport').value.toUpperCase();
+      const destination = document.getElementById('destination').value;
+
+      if (!fromAirport || !destination || !selectedHoliday) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      const container = document.getElementById('flightsContainer');
+      container.innerHTML = '<div class="col-span-3 flex justify-center"><div class="spinner"></div></div>';
+
+      try {
+        const response = await fetch(`${API_URL}/search-flights`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAirport: fromAirport,
+            toAirport: destination,
+            departDate: selectedHoliday.date
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.flights.length > 0) {
+          displayFlights(data.flights, data.recommendation, data.summary);
+          document.getElementById('aiSection').classList.remove('hidden');
+        } else {
+          container.innerHTML = '<p class="text-gray-400 col-span-3 text-center py-8">No flights found. Try different criteria.</p>';
+        }
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    function displayFlights(flights, recommendation, summary) {
+      const container = document.getElementById('flightsContainer');
+      document.getElementById('statPrice').textContent = '$' + summary.average;
+
+      container.innerHTML = flights.slice(0, 6).map((flight, index) => `
+        <div class="card-hover bg-gray-900 rounded-xl border border-gray-800 p-6 ${index === 0 ? 'ring-2 ring-energy-purple' : ''}">
+          ${index === 0 ? '<div class="inline-block px-3 py-1 bg-energy-coral text-black text-xs font-bold rounded-full mb-4">🏆 CHEAPEST</div>' : ''}
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <div class="font-bold text-lg text-white">${flight.airline}</div>
+              <div class="text-sm text-gray-400">${flight.source}</div>
+            </div>
+            <div class="text-3xl font-bold text-energy-teal">$${flight.price}</div>
+          </div>
+          <div class="space-y-2 text-sm text-gray-400 mb-4">
+            <div class="flex items-center space-x-2">
+              <iconify-icon icon="mdi:clock"></iconify-icon>
+              <span>${flight.duration}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <iconify-icon icon="mdi:plane-connection"></iconify-icon>
+              <span>${flight.stops} stops</span>
+            </div>
+          </div>
+          <button onclick="saveTrip('${flight.airline}', ${flight.price}, '${selectedHoliday.name}')" class="w-full py-2 bg-energy-purple hover:bg-energy-purple/80 rounded-lg font-semibold transition-smooth flex items-center justify-center space-x-2">
+            <iconify-icon icon="mdi:heart-outline"></iconify-icon>
+            <span>Save Trip</span>
+          </button>
+        </div>
+      `).join('');
+
+      document.getElementById('aiRecommendation').textContent = recommendation;
+    }
+
+    function saveTrip(airline, price, holiday) {
+      const trip = {
+        id: Date.now(),
+        airline,
+        price,
+        holiday,
+        year: currentYear,
+        savedAt: new Date().toLocaleDateString()
+      };
+
+      savedTrips.push(trip);
+      localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
+      alert('✅ Trip saved!');
+      loadSavedTrips();
+    }
+
+    function loadSavedTrips() {
+      const container = document.getElementById('savedTripsContainer');
+      
+      if (savedTrips.length === 0) {
+        container.innerHTML = '<div class="text-center py-12 text-gray-400"><iconify-icon icon="mdi:heart-outline" width="48" class="mx-auto mb-4 opacity-50"></iconify-icon><p>No saved trips yet</p></div>';
+        return;
+      }
+
+      container.innerHTML = savedTrips.map(trip => `
+        <div class="card-hover bg-gray-900 rounded-xl border border-gray-800 p-6">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <div class="font-bold text-lg text-white">${trip.airline}</div>
+              <div class="text-sm text-gray-400">${trip.year}</div>
+            </div>
+            <button onclick="deleteSavedTrip(${trip.id})" class="text-gray-400 hover:text-energy-coral transition-smooth">
+              <iconify-icon icon="mdi:trash"></iconify-icon>
+            </button>
+          </div>
+          <div class="text-2xl font-bold text-energy-teal mb-2">$${trip.price}</div>
+          <div class="text-sm text-gray-400">${trip.holiday}</div>
+        </div>
+      `).join('');
+    }
+
+    function deleteSavedTrip(id) {
+      savedTrips = savedTrips.filter(t => t.id !== id);
+      localStorage.setItem('savedTrips', JSON.stringify(savedTrips));
+      loadSavedTrips();
+    }
+
+    async function compareYears() {
+      const holiday = document.getElementById('compareHoliday').value;
+      const destination = document.getElementById('compareDestination').value;
+      const fromAirport = document.getElementById('compareFromAirport').value.toUpperCase();
+
+      if (!holiday || !destination || !fromAirport) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      const dates = [];
+      for (const year of [2026, 2027, 2028]) {
+        const yearHolidays = allHolidays[year] || [];
+        const holidayData = yearHolidays.find(h => h.name === holiday);
+        if (holidayData) dates.push(holidayData.date);
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/compare-dates`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAirport,
+            toAirport: destination,
+            dates
+          })
+        });
+
+        const data = await response.json();
+        displayComparison(data.comparisons);
+        document.getElementById('comparisonResults').classList.remove('hidden');
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    function displayComparison(comparisons) {
+      const html = `
+        <thead>
+          <tr class="border-b border-gray-700">
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Date</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Year</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Cheapest</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Airline</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Avg Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${comparisons.map(c => `
+            <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-smooth">
+              <td class="py-4 px-4">${c.date}</td>
+              <td class="py-4 px-4 font-semibold">${c.date.split('-')[0]}</td>
+              <td class="py-4 px-4 text-energy-teal font-bold">$${c.cheapest.price}</td>
+              <td class="py-4 px-4">${c.cheapest.airline}</td>
+              <td class="py-4 px-4">$${c.average}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      `;
+      document.getElementById('comparisonTable').innerHTML = html;
+    }
+
+    async function getPriceTrends() {
+      const holiday = document.getElementById('trendHoliday').value;
+      const destination = document.getElementById('trendDestination').value;
+      const fromAirport = document.getElementById('trendFromAirport').value.toUpperCase();
+
+      if (!holiday || !destination || !fromAirport) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/price-trends`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fromAirport,
+            toAirport: destination,
+            holiday,
+            years: [2026, 2027, 2028]
+          })
+        });
+
+        const data = await response.json();
+        displayTrends(data.trends);
+        document.getElementById('trendsResults').classList.remove('hidden');
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    }
+
+    function displayTrends(trends) {
+      const maxPrice = Math.max(...trends.map(t => t.cheapest));
+      const scale = 300 / maxPrice;
+
+      const html = trends.map(t => `
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-semibold">${t.year}</span>
+            <span class="text-energy-teal font-bold">$${t.cheapest}</span>
+          </div>
+          <div class="h-8 bg-gray-800 rounded-lg overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-energy-purple to-energy-teal transition-smooth" style="width: ${(t.cheapest / maxPrice) * 100}%"></div>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('trendsResults').innerHTML = html;
+    }
+  </script>
+</body>
+</html>
