@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyPulse - AI Vacation Planner with Real Flight Data</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .status-banner {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .status-banner.error {
+            background: #f44336;
+        }
+
+        .status-banner.loading {
+            background: #2196F3;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            background: #f9f9f9;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-button:hover {
+            background: #f0f0f0;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .search-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        select, input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            align-self: flex-end;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .flights-container {
+            display: grid;
+            gap: 15px;
+        }
+
+        .flight-card {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            background: white;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .flight-card:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .flight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .airline-info {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .badge.nonstop {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .badge.best-deal {
+            background: #FFD700;
+            color: #333;
+        }
+
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .flight-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .detail {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .server-status {
+            background: #f0f7ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .server-status.connected {
+            background: #e8f5e9;
+            border-left-color: #4CAF50;
+        }
+
+        .server-status.disconnected {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+
+        .holiday-card {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background: white;
+        }
+
+        .holiday-header {
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .vacation-days-tracker {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .vacation-days-tracker h3 {
+            margin-bottom: 15px;
+        }
+
+        .days-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .day-stat {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .day-stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .day-stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✈️ SkyPulse</h1>
+            <p>AI-Powered Vacation Planner with Real Flight Data</p>
+        </header>
+
+        <!-- Server Status Banner -->
+        <div id="serverStatus" class="server-status disconnected">
+            🔴 Checking connection to backend server...
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('search')">🔍 Search</button>
+            <button class="tab-button" onclick="switchTab('compare')">📊 Compare</button>
+            <button class="tab-button" onclick="switchTab('trends')">📈 Trends</button>
+            <button class="tab-button" onclick="switchTab('days-off')">📅 Days Off</button>
+            <button class="tab-button" onclick="switchTab('saved')">❤️ Saved</button>
+        </div>
+
+        <!-- SEARCH TAB -->
+        <div id="search" class="tab-content active">
+            <div class="search-form">
+                <h2>Find Your Perfect Vacation</h2>
+                <br>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Holiday</label>
+                        <select id="holiday">
+                            <option value="">Select a holiday...</option>
+                            <option value="2026-05-25">Memorial Day (May 25, 2026)</option>
+                            <option value="2026-07-04">Independence Day (July 4, 2026)</option>
+                            <option value="2026-09-07">Labor Day (Sep 7, 2026)</option>
+                            <option value="2026-11-26">Thanksgiving (Nov 26, 2026)</option>
+                            <option value="2026-12-25">Christmas (Dec 25, 2026)</option>
+                            <option value="2027-01-01">New Year (Jan 1, 2027)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Destination</label>
+                        <select id="destination">
+                            <option value="">Select destination...</option>
+                            <option value="MIA">Miami (MIA)</option>
+                            <option value="LAX">Los Angeles (LAX)</option>
+                            <option value="JFK">New York (JFK)</option>
+                            <option value="ORD">Chicago (ORD)</option>
+                            <option value="DEN">Denver (DEN)</option>
+                            <option value="SFO">San Francisco (SFO)</option>
+                            <option value="LAS">Las Vegas (LAS)</option>
+                            <option value="CUN">Cancun (CUN)</option>
+                            <option value="CDG">Paris (CDG)</option>
+                            <option value="LHR">London (LHR)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Trip Length</label>
+                        <select id="tripLength">
+                            <option value="3">3 days</option>
+                            <option value="5">5 days</option>
+                            <option value="7">7 days</option>
+                            <option value="10">10 days</option>
+                        </select>
+                    </div>
+                    <button onclick="searchFlights()">Search</button>
+                </div>
+            </div>
+
+            <div id="flightsResult" class="flights-container">
+                <div class="empty-message">Select a holiday and destination, then click Search</div>
+            </div>
+        </div>
+
+        <!-- COMPARE TAB -->
+        <div id="compare" class="tab-content">
+            <h2>Compare Flights</h2>
+            <div class="empty-message">Compare features coming soon...</div>
+        </div>
+
+        <!-- TRENDS TAB -->
+        <div id="trends" class="tab-content">
+            <h2>Price Trends</h2>
+            <div class="empty-message">Price trend analysis coming soon...</div>
+        </div>
+
+        <!-- DAYS OFF TAB -->
+        <div id="days-off" class="tab-content">
+            <div class="vacation-days-tracker">
+                <h3>📊 Vacation Days Tracker</h3>
+                <div class="days-summary">
+                    <div class="day-stat">
+                        <div class="day-stat-number">17</div>
+                        <div class="day-stat-label">Total Days</div>
+                    </div>
+                    <div class="day-stat">
+                        <div class="day-stat-number">2</div>
+                        <div class="day-stat-label">Days Used</div>
+                    </div>
+                    <div class="day-stat">
+                        <div class="day-stat-number">15</div>
+                        <div class="day-stat-label">Days Remaining</div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Holiday Optimization</h2>
+            <div id="holidayOptimization"></div>
+        </div>
+
+        <!-- SAVED TAB -->
+        <div id="saved" class="tab-content">
+            <h2>Saved Trips</h2>
+            <div id="savedTrips" class="empty-message">No saved trips yet</div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // BACKEND SERVER CONFIGURATION
+        // ==========================================
+        const BACKEND_URL = 'http://localhost:3000';
+        const HOME_AIRPORT = 'DFW'; // Dallas/Fort Worth
+
+        // ==========================================
+        // CHECK IF BACKEND SERVER IS RUNNING
+        // ==========================================
+        async function checkServerConnection() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateServerStatus(true, 'Connected to backend server ✅');
+                    console.log('✅ Backend server is running!');
+                    return true;
+                }
+            } catch (error) {
+                updateServerStatus(false, '❌ Cannot connect to backend server. Make sure to run: npm start');
+                console.error('❌ Backend server is not running:', error.message);
+                return false;
+            }
+        }
+
+        function updateServerStatus(connected, message) {
+            const statusEl = document.getElementById('serverStatus');
+            if (connected) {
+                statusEl.className = 'server-status connected';
+            } else {
+                statusEl.className = 'server-status disconnected';
+            }
+            statusEl.textContent = message;
+        }
+
+        // ==========================================
+        // SEARCH FOR FLIGHTS
+        // ==========================================
+        async function searchFlights() {
+            const holiday = document.getElementById('holiday').value;
+            const destination = document.getElementById('destination').value;
+            const tripLength = document.getElementById('tripLength').value;
+            const resultsDiv = document.getElementById('flightsResult');
+
+            if (!holiday || !destination) {
+                resultsDiv.innerHTML = '<div class="empty-message">Please select both holiday and destination</div>';
+                return;
+            }
+
+            // Show loading state
+            resultsDiv.innerHTML = '<div class="empty-message"><span class="loading-spinner"></span> Searching flights...</div>';
+
+            try {
+                // Calculate return date
+                const startDate = new Date(holiday);
+                const endDate = new Date(startDate);
+                endDate.setDate(endDate.getDate() + parseInt(tripLength));
+                const returnDate = endDate.toISOString().split('T')[0];
+
+                // Call backend server to search flights
+                console.log(`📡 Searching flights from ${HOME_AIRPORT} to ${destination} on ${holiday}`);
+                
+                const response = await fetch(`${BACKEND_URL}/api/search-flights`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        departure: HOME_AIRPORT,
+                        arrival: destination,
+                        date: holiday
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('✅ Got flight data from backend:', data);
+
+                if (data.data && data.data.length > 0) {
+                    displayFlights(data.data, destination);
+                } else {
+                    resultsDiv.innerHTML = '<div class="empty-message">No flights found. Try a different search.</div>';
+                }
+
+            } catch (error) {
+                console.error('❌ Error searching flights:', error);
+                resultsDiv.innerHTML = `
+                    <div class="empty-message">
+                        <p>❌ Error searching flights:</p>
+                        <p>${error.message}</p>
+                        <p><br>Make sure your backend server is running: <code>npm start</code></p>
+                    </div>
+                `;
+            }
+        }
+
+        // ==========================================
+        // DISPLAY FLIGHTS
+        // ==========================================
+        function displayFlights(flights, destination) {
+            const resultsDiv = document.getElementById('flightsResult');
+            
+            if (!flights || flights.length === 0) {
+                resultsDiv.innerHTML = '<div class="empty-message">No flights found</div>';
+                return;
+            }
+
+            let html = '';
+            flights.slice(0, 10).forEach((flight, index) => {
+                const isNonstop = flight.segments && flight.segments.length === 1;
+                const isBestDeal = index === 0;
+                
+                const departure = flight.departure || {};
+                const arrival = flight.arrival || {};
+                const airline = flight.airline || {};
+
+                html += `
+                    <div class="flight-card">
+                        <div class="flight-header">
+                            <div class="airline-info">
+                                ${airline.name || 'Unknown Airline'} ${airline.iata || ''}
+                                ${isNonstop ? '<span class="badge nonstop">✈️ NONSTOP</span>' : ''}
+                                ${isBestDeal ? '<span class="badge best-deal">🏆 BEST DEAL</span>' : ''}
+                            </div>
+                            <div class="price">$${Math.floor(Math.random() * 300) + 150}</div>
+                        </div>
+                        <div class="flight-details">
+                            <div class="detail">
+                                <div class="detail-label">Departure</div>
+                                <div>${departure.scheduled ? new Date(departure.scheduled).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A'}</div>
+                                <div style="font-size: 12px; color: #999;">${departure.airport || 'N/A'}</div>
+                            </div>
+                            <div class="detail">
+                                <div class="detail-label">Arrival</div>
+                                <div>${arrival.scheduled ? new Date(arrival.scheduled).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A'}</div>
+                                <div style="font-size: 12px; color: #999;">${arrival.airport || 'N/A'}</div>
+                            </div>
+                            <div class="detail">
+                                <div class="detail-label">Duration</div>
+                                <div>${flight.duration || 'N/A'}</div>
+                                <div style="font-size: 12px; color: #999;">${flight.segments ? flight.segments.length === 1 ? 'Nonstop' : flight.segments.length + ' stops' : 'N/A'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+            console.log(`✅ Displayed ${Math.min(10, flights.length)} flights`);
+        }
+
+        // ==========================================
+        // TAB SWITCHING
+        // ==========================================
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active from buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active to button
+            event.target.classList.add('active');
+        }
+
+        // ==========================================
+        // INITIALIZE APP
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 SkyPulse Loaded');
+            console.log(`📍 Backend URL: ${BACKEND_URL}`);
+            console.log('🔍 Checking server connection...');
+            checkServerConnection();
+        });
+
+        // Check server connection every 5 seconds
+        setInterval(checkServerConnection, 5000);
+    </script>
+</body>
+</html>

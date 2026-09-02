@@ -2,12 +2,12 @@
   "name": "flight-comparison-vacation-planner",
   "version": "2.0.0",
   "description": "Vacation planner with flight comparison across multiple websites and AI recommendations",
-  "main": "src/backend/flight_comparison_server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node src/backend/flight_comparison_server.js",
-    "dev": "node src/backend/flight_comparison_server.js",
-    "test": "node src/backend/vacation_api_demo.js",
-    "install-deps": "npm install express cors dotenv axios"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "server": "node server.js",
+    "install-deps": "npm install"
   },
   "keywords": [
     "vacation",
@@ -33,6 +33,7 @@
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
-    "axios": "^1.4.0"
+    "axios": "^1.4.0",
+    "node-fetch": "^2.6.11"
   }
 }
