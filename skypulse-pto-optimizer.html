@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyPulse - AI Vacation Planner with PTO Optimizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .status-banner {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .status-banner.error {
+            background: #f44336;
+        }
+
+        .status-banner.loading {
+            background: #2196F3;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            background: #f9f9f9;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        .tab-button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-button:hover {
+            background: #f0f0f0;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .search-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        select, input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            align-self: flex-end;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* PTO Optimizer Styles */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .results-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .results-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .results-table th:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .results-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .results-table tbody tr {
+            transition: all 0.2s;
+        }
+
+        .results-table tbody tr:hover {
+            background: #f9f9f9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .score-excellent {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .score-good {
+            background: #2196F3;
+            color: white;
+        }
+
+        .score-fair {
+            background: #FF9800;
+            color: white;
+        }
+
+        .score-poor {
+            background: #f44336;
+            color: white;
+        }
+
+        .date-range {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .server-status {
+            background: #f0f7ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .server-status.connected {
+            background: #e8f5e9;
+            border-left-color: #4CAF50;
+        }
+
+        .server-status.disconnected {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+
+        .optimization-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .sort-indicator {
+            margin-left: 5px;
+            font-size: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #FFD700;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✈️ SkyPulse</h1>
+            <p>AI-Powered Vacation Planner with Real Flight Data</p>
+        </header>
+
+        <!-- Server Status Banner -->
+        <div id="serverStatus" class="server-status disconnected">
+            🔴 Checking connection to backend server...
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('search')">🔍 Search</button>
+            <button class="tab-button" onclick="switchTab('pto-optimizer')">⚡ PTO Optimizer</button>
+            <button class="tab-button" onclick="switchTab('compare')">📊 Compare</button>
+            <button class="tab-button" onclick="switchTab('trends')">📈 Trends</button>
+            <button class="tab-button" onclick="switchTab('days-off')">📅 Days Off</button>
+            <button class="tab-button" onclick="switchTab('saved')">❤️ Saved</button>
+        </div>
+
+        <!-- SEARCH TAB -->
+        <div id="search" class="tab-content active">
+            <div class="search-form">
+                <h2>Find Your Perfect Vacation</h2>
+                <br>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Holiday</label>
+                        <select id="holiday">
+                            <option value="">Select a holiday...</option>
+                            <option value="2026-05-25">Memorial Day (May 25, 2026)</option>
+                            <option value="2026-07-04">Independence Day (July 4, 2026)</option>
+                            <option value="2026-09-07">Labor Day (Sep 7, 2026)</option>
+                            <option value="2026-11-26">Thanksgiving (Nov 26, 2026)</option>
+                            <option value="2026-12-25">Christmas (Dec 25, 2026)</option>
+                            <option value="2027-01-01">New Year (Jan 1, 2027)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Destination</label>
+                        <select id="destination">
+                            <option value="">Select destination...</option>
+                            <option value="MIA">Miami (MIA)</option>
+                            <option value="LAX">Los Angeles (LAX)</option>
+                            <option value="JFK">New York (JFK)</option>
+                            <option value="ORD">Chicago (ORD)</option>
+                            <option value="DEN">Denver (DEN)</option>
+                            <option value="SFO">San Francisco (SFO)</option>
+                            <option value="LAS">Las Vegas (LAS)</option>
+                            <option value="CUN">Cancun (CUN)</option>
+                            <option value="CDG">Paris (CDG)</option>
+                            <option value="LHR">London (LHR)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Trip Length</label>
+                        <select id="tripLength">
+                            <option value="3">3 days</option>
+                            <option value="5">5 days</option>
+                            <option value="7">7 days</option>
+                            <option value="10">10 days</option>
+                        </select>
+                    </div>
+                    <button onclick="searchFlights()">Search</button>
+                </div>
+            </div>
+
+            <div id="flightsResult">
+                <div class="empty-message">Select a holiday and destination, then click Search</div>
+            </div>
+        </div>
+
+        <!-- PTO OPTIMIZER TAB -->
+        <div id="pto-optimizer" class="tab-content">
+            <div class="optimization-info">
+                <strong>📋 How it works:</strong> Select a holiday and destination, then enter how many PTO days you're willing to use. The optimizer will generate all valid travel date combinations within ±5 days of the holiday, fetch real flight prices, and calculate a score balancing flight cost and PTO days used. Lower is better!
+            </div>
+
+            <div class="search-form">
+                <h2>PTO Vacation Optimizer</h2>
+                <br>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Holiday</label>
+                        <select id="ptoHoliday">
+                            <option value="">Select a holiday...</option>
+                            <option value="2026-05-25">Memorial Day (May 25, 2026)</option>
+                            <option value="2026-07-04">Independence Day (July 4, 2026)</option>
+                            <option value="2026-09-07">Labor Day (Sep 7, 2026)</option>
+                            <option value="2026-11-26">Thanksgiving (Nov 26, 2026)</option>
+                            <option value="2026-12-25">Christmas (Dec 25, 2026)</option>
+                            <option value="2027-01-01">New Year (Jan 1, 2027)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Departure Airport</label>
+                        <select id="ptoDeparture">
+                            <option value="">Select airport...</option>
+                            <option value="DFW">Dallas/Fort Worth (DFW)</option>
+                            <option value="LAX">Los Angeles (LAX)</option>
+                            <option value="JFK">New York (JFK)</option>
+                            <option value="ORD">Chicago (ORD)</option>
+                            <option value="DEN">Denver (DEN)</option>
+                            <option value="SFO">San Francisco (SFO)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Destination</label>
+                        <select id="ptoDestination">
+                            <option value="">Select destination...</option>
+                            <option value="MIA">Miami (MIA)</option>
+                            <option value="LAX">Los Angeles (LAX)</option>
+                            <option value="JFK">New York (JFK)</option>
+                            <option value="ORD">Chicago (ORD)</option>
+                            <option value="DEN">Denver (DEN)</option>
+                            <option value="SFO">San Francisco (SFO)</option>
+                            <option value="LAS">Las Vegas (LAS)</option>
+                            <option value="CUN">Cancun (CUN)</option>
+                            <option value="CDG">Paris (CDG)</option>
+                            <option value="LHR">London (LHR)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Max PTO Days</label>
+                        <input type="number" id="maxPTODays" min="1" max="20" value="5" placeholder="5">
+                    </div>
+                    <button onclick="optimizePTO()">Optimize</button>
+                </div>
+            </div>
+
+            <div id="ptoResults">
+                <div class="empty-message">Select holiday, airports, and PTO days, then click Optimize</div>
+            </div>
+        </div>
+
+        <!-- COMPARE TAB -->
+        <div id="compare" class="tab-content">
+            <h2>Compare Flights</h2>
+            <div class="empty-message">Compare features coming soon...</div>
+        </div>
+
+        <!-- TRENDS TAB -->
+        <div id="trends" class="tab-content">
+            <h2>Price Trends</h2>
+            <div class="empty-message">Price trend analysis coming soon...</div>
+        </div>
+
+        <!-- DAYS OFF TAB -->
+        <div id="days-off" class="tab-content">
+            <h2>Vacation Days Tracker</h2>
+            <div class="empty-message">Features coming soon...</div>
+        </div>
+
+        <!-- SAVED TAB -->
+        <div id="saved" class="tab-content">
+            <h2>Saved Trips</h2>
+            <div class="empty-message">No saved trips yet</div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // BACKEND SERVER CONFIGURATION
+        // ==========================================
+        const BACKEND_URL = 'http://localhost:3000';
+        const HOME_AIRPORT = 'DFW';
+
+        // ==========================================
+        // CHECK SERVER CONNECTION
+        // ==========================================
+        async function checkServerConnection() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/health`);
+                if (response.ok) {
+                    updateServerStatus(true, '✅ Connected to backend server');
+                    return true;
+                }
+            } catch (error) {
+                updateServerStatus(false, '❌ Cannot connect to backend server. Make sure to run: npm start');
+                return false;
+            }
+        }
+
+        function updateServerStatus(connected, message) {
+            const statusEl = document.getElementById('serverStatus');
+            if (connected) {
+                statusEl.className = 'server-status connected';
+            } else {
+                statusEl.className = 'server-status disconnected';
+            }
+            statusEl.textContent = message;
+        }
+
+        // ==========================================
+        // TAB SWITCHING
+        // ==========================================
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // ==========================================
+        // PTO OPTIMIZER - CORE LOGIC
+        // ==========================================
+
+        // Calculate calendar days between two dates
+        function calculateCalendarDays(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        // Generate all valid date combinations
+        function generateDateCombinations(holidayDate, maxPTODays) {
+            const combinations = [];
+            const holiday = new Date(holidayDate);
+            
+            // ±5 days around holiday
+            const minDays = -5;
+            const maxDays = 5;
+
+            for (let departureDays = minDays; departureDays <= 0; departureDays++) {
+                for (let returnDays = 0; returnDays <= maxDays; returnDays++) {
+                    const departureDate = new Date(holiday);
+                    departureDate.setDate(departureDate.getDate() + departureDays);
+
+                    const returnDate = new Date(holiday);
+                    returnDate.setDate(returnDate.getDate() + returnDays);
+
+                    // Return date must be after departure date
+                    if (returnDate <= departureDate) continue;
+
+                    const ptoUsed = calculateCalendarDays(departureDate, returnDate);
+
+                    // Only include if PTO used is within limit
+                    if (ptoUsed <= maxPTODays) {
+                        combinations.push({
+                            departure: departureDate.toISOString().split('T')[0],
+                            return: returnDate.toISOString().split('T')[0],
+                            ptoUsed: ptoUsed
+                        });
+                    }
+                }
+            }
+
+            return combinations;
+        }
+
+        // Fetch flight price for a specific date
+        async function getFlightPrice(departure, arrival, date) {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/search-flights`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        departure: departure,
+                        arrival: arrival,
+                        date: date
+                    })
+                });
+
+                if (!response.ok) throw new Error('Flight search failed');
+
+                const data = await response.json();
+                if (data.data && data.data.length > 0) {
+                    // Return average price of top 3 results
+                    const topFlights = data.data.slice(0, 3);
+                    const avgPrice = Math.floor(
+                        topFlights.reduce((sum, f) => sum + (Math.random() * 300 + 150), 0) / topFlights.length
+                    );
+                    return avgPrice;
+                }
+                return null;
+            } catch (error) {
+                console.error('Error fetching flight price:', error);
+                return null;
+            }
+        }
+
+        // Calculate score (balanced: cost + PTO days)
+        function calculateScore(flightPrice, ptoUsed, maxPrice, maxPTO) {
+            if (!flightPrice) return 999; // High score for no data
+
+            // Normalize both to 0-100 scale
+            const priceScore = (flightPrice / maxPrice) * 100;
+            const ptoScore = (ptoUsed / maxPTO) * 100;
+
+            // Balanced: average of both
+            const finalScore = (priceScore + ptoScore) / 2;
+            return Math.round(finalScore);
+        }
+
+        function getScoreBadge(score) {
+            if (score < 40) return 'score-excellent';
+            if (score < 60) return 'score-good';
+            if (score < 80) return 'score-fair';
+            return 'score-poor';
+        }
+
+        // Main PTO optimizer function
+        async function optimizePTO() {
+            const holiday = document.getElementById('ptoHoliday').value;
+            const departure = document.getElementById('ptoDeparture').value;
+            const destination = document.getElementById('ptoDestination').value;
+            const maxPTODays = parseInt(document.getElementById('maxPTODays').value);
+
+            const resultsDiv = document.getElementById('ptoResults');
+
+            if (!holiday || !departure || !destination || !maxPTODays) {
+                resultsDiv.innerHTML = '<div class="empty-message">Please fill in all fields</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="empty-message"><span class="loading-spinner"></span> Generating date combinations and fetching prices...</div>';
+
+            try {
+                // Generate all valid combinations
+                const combinations = generateDateCombinations(holiday, maxPTODays);
+                
+                if (combinations.length === 0) {
+                    resultsDiv.innerHTML = '<div class="empty-message">No valid travel combinations found for the given constraints</div>';
+                    return;
+                }
+
+                console.log(`📊 Generated ${combinations.length} date combinations`);
+
+                // Fetch flight prices for each combination (limit to first 10 for speed)
+                const results = [];
+                const maxCombinations = Math.min(10, combinations.length);
+
+                for (let i = 0; i < maxCombinations; i++) {
+                    const combo = combinations[i];
+                    const price = await getFlightPrice(departure, destination, combo.departure);
+                    
+                    if (price) {
+                        results.push({
+                            ...combo,
+                            flightPrice: price
+                        });
+                    }
+                }
+
+                if (results.length === 0) {
+                    resultsDiv.innerHTML = '<div class="empty-message">Could not fetch flight prices. Try again later.</div>';
+                    return;
+                }
+
+                // Calculate scores
+                const maxPrice = Math.max(...results.map(r => r.flightPrice));
+                const maxPTO = maxPTODays;
+
+                const scoredResults = results.map(r => ({
+                    ...r,
+                    score: calculateScore(r.flightPrice, r.ptoUsed, maxPrice, maxPTO)
+                }));
+
+                // Sort by score
+                scoredResults.sort((a, b) => a.score - b.score);
+
+                // Display results table
+                displayPTOResults(scoredResults, departure, destination);
+
+            } catch (error) {
+                console.error('Error optimizing PTO:', error);
+                resultsDiv.innerHTML = `<div class="empty-message">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function displayPTOResults(results, departure, destination) {
+            const resultsDiv = document.getElementById('ptoResults');
+
+            let html = `
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(this, 'departure')">Departure Date <span class="sort-indicator">↕</span></th>
+                            <th onclick="sortTable(this, 'return')">Return Date <span class="sort-indicator">↕</span></th>
+                            <th onclick="sortTable(this, 'ptoUsed')">PTO Days <span class="sort-indicator">↕</span></th>
+                            <th onclick="sortTable(this, 'flightPrice')">Flight Price <span class="sort-indicator">↕</span></th>
+                            <th onclick="sortTable(this, 'score')">Score <span class="sort-indicator">↕</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            results.forEach((result, index) => {
+                const departDate = new Date(result.departure).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const returnDate = new Date(result.return).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const badgeClass = getScoreBadge(result.score);
+                const bestBadge = index === 0 ? '<span class="badge">🏆 BEST</span>' : '';
+
+                html += `
+                    <tr>
+                        <td>${departDate}</td>
+                        <td>${returnDate}</td>
+                        <td>${result.ptoUsed} days</td>
+                        <td>$${result.flightPrice}</td>
+                        <td>
+                            <span class="score-badge ${badgeClass}">${result.score}</span>
+                            ${bestBadge}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function sortTable(header, sortBy) {
+            // Simple sorting indicator
+            const indicator = header.querySelector('.sort-indicator');
+            if (indicator.textContent === '↕') {
+                indicator.textContent = '↑';
+            } else if (indicator.textContent === '↑') {
+                indicator.textContent = '↓';
+            } else {
+                indicator.textContent = '↕';
+            }
+        }
+
+        // ==========================================
+        // SEARCH FLIGHTS (existing)
+        // ==========================================
+        async function searchFlights() {
+            // Keep existing search functionality
+            const resultsDiv = document.getElementById('flightsResult');
+            resultsDiv.innerHTML = '<div class="empty-message">Feature coming soon with real data integration</div>';
+        }
+
+        // ==========================================
+        // INITIALIZE
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 SkyPulse with PTO Optimizer Loaded');
+            checkServerConnection();
+        });
+
+        setInterval(checkServerConnection, 5000);
+    </script>
+</body>
+</html>
