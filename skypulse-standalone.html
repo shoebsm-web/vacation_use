@@ -315,10 +315,9 @@
               <!-- Year Selector -->
               <div class="mb-6">
                 <label class="block text-sm font-semibold mb-3 text-gray-300">Select Year</label>
-                <div class="grid grid-cols-3 gap-2">
+                <div class="grid grid-cols-2 gap-2">
                   <button onclick="selectYear(2026)" class="year-btn active py-2 rounded-lg bg-energy-purple/20 border border-energy-purple text-energy-purple font-semibold transition-smooth hover:bg-energy-purple/30">2026</button>
                   <button onclick="selectYear(2027)" class="year-btn py-2 rounded-lg border border-gray-700 text-gray-400 font-semibold transition-smooth hover:border-energy-purple">2027</button>
-                  <button onclick="selectYear(2028)" class="year-btn py-2 rounded-lg border border-gray-700 text-gray-400 font-semibold transition-smooth hover:border-energy-purple">2028</button>
                 </div>
               </div>
 
@@ -582,15 +581,7 @@
               <label class="block text-sm font-semibold mb-2 text-gray-300">Holiday</label>
               <select id="ptoHoliday" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
                 <option value="">Select holiday...</option>
-                <option value="2026-05-25|Memorial Day">Memorial Day (May 25)</option>
-                <option value="2026-07-04|Independence Day">Independence Day (Jul 4)</option>
-                <option value="2026-09-07|Labor Day">Labor Day (Sep 7)</option>
-                <option value="2026-11-26|Thanksgiving">Thanksgiving (Nov 26)</option>
-                <option value="2026-12-25|Christmas">Christmas (Dec 25)</option>
-                <option value="2027-01-01|New Year">New Year (Jan 1)</option>
-                <option value="2027-01-18|MLK Day">MLK Day (Jan 18)</option>
-                <option value="2027-02-15|Presidents Day">Presidents Day (Feb 15)</option>
-                <option value="2027-05-31|Memorial Day">Memorial Day (May 31)</option>
+                <!-- Populated by JavaScript - only shows future dates -->
               </select>
             </div>
             <div>
@@ -780,18 +771,7 @@
         { name: 'Memorial Day', date: '2027-05-31', month: 'May', day: '31' },
         { name: 'Independence Day', date: '2027-07-04', month: 'July', day: '4' }
       ],
-      2028: [
-        { name: 'Labor Day', date: '2028-09-04', month: 'Sept', day: '4' },
-        { name: 'Columbus Day', date: '2028-10-10', month: 'Oct', day: '10' },
-        { name: 'Veterans Day', date: '2028-11-11', month: 'Nov', day: '11' },
-        { name: 'Thanksgiving', date: '2028-11-23', month: 'Nov', day: '23' },
-        { name: 'Christmas', date: '2028-12-25', month: 'Dec', day: '25' },
-        { name: 'New Years', date: '2029-01-01', month: 'Jan', day: '1' },
-        { name: 'MLK Day', date: '2028-01-17', month: 'Jan', day: '17' },
-        { name: 'Presidents Day', date: '2028-02-21', month: 'Feb', day: '21' },
-        { name: 'Memorial Day', date: '2028-05-29', month: 'May', day: '29' },
-        { name: 'Independence Day', date: '2028-07-04', month: 'July', day: '4' }
-      ]
+
     };
 
     const mockFlights = {
@@ -1194,11 +1174,55 @@ Best strategy: [explanation]`;
     // Call on page load
     setTimeout(() => initHolidayOptimizer(), 100);
 
+    // Populate PTO Optimizer dropdown with future dates only
+    function populatePTODropdown() {
+      const dropdown = document.getElementById('ptoHoliday');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Collect all holidays from 2026 and 2027
+      const allHolidays = [];
+      [2026, 2027].forEach(year => {
+        (mockHolidays[year] || []).forEach(h => {
+          if (new Date(h.date + 'T12:00:00') >= today) {
+            allHolidays.push(h);
+          }
+        });
+      });
+
+      // Sort by date
+      allHolidays.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      // Build options
+      dropdown.innerHTML = '<option value="">Select holiday...</option>' +
+        allHolidays.map(h => {
+          const d = new Date(h.date + 'T12:00:00');
+          const label = `${h.name} (${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`;
+          return `<option value="${h.date}|${h.name}">${label}</option>`;
+        }).join('');
+    }
+
+    // Initialize on load
+    setTimeout(() => {
+      populatePTODropdown();
+      displayHolidaysForYear(2026);
+    }, 150);
+
     function displayHolidaysForYear(year) {
       const grid = document.getElementById('holidayGrid');
       const holidays = mockHolidays[year] || [];
       
-      grid.innerHTML = holidays.map(holiday => `
+      // Filter out past dates (before today)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const futureHolidays = holidays.filter(h => new Date(h.date + 'T12:00:00') >= today);
+
+      if (futureHolidays.length === 0) {
+        grid.innerHTML = '<div class="col-span-2 text-center text-gray-500 py-4">No upcoming holidays left in ' + year + '</div>';
+        return;
+      }
+      
+      grid.innerHTML = futureHolidays.map(holiday => `
         <button onclick="selectHoliday('${holiday.name}', '${holiday.date}', event.target.closest('button'))" 
                 class="p-3 rounded-lg border border-gray-700 hover:border-energy-purple hover:bg-energy-purple/10 transition-smooth text-sm font-semibold text-left">
           <div class="font-bold text-white">${holiday.name.split(' ')[0]}</div>
@@ -1395,8 +1419,8 @@ Best strategy: [explanation]`;
         return;
       }
 
-      const comparisons = [2026, 2027, 2028].map(year => {
-        const yearHoliday = mockHolidays[year].find(h => h.name === holiday);
+      const comparisons = [2026, 2027].map(year => {
+        const yearHoliday = (mockHolidays[year] || []).find(h => h.name === holiday);
         let baseFlights = mockFlights[destination] || defaultFlights;
         
         // Filter nonstop and 1-stop only
@@ -1450,7 +1474,7 @@ Best strategy: [explanation]`;
         return;
       }
 
-      const trends = [2026, 2027, 2028].map(year => ({
+      const trends = [2026, 2027].map(year => ({
         year,
         cheapest: Math.floor(Math.random() * 300) + 150
       }));
