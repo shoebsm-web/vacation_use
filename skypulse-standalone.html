@@ -256,6 +256,7 @@
         </div>
         <div class="hidden md:flex items-center space-x-8">
           <button onclick="switchTab('search')" class="tab-underline active transition-smooth hover:text-energy-purple">Search</button>
+          <button onclick="switchTab('ai-discover')" class="tab-underline transition-smooth hover:text-energy-purple">🤖 AI Discovery</button>
           <button onclick="switchTab('pto')" class="tab-underline transition-smooth hover:text-energy-purple">⚡ PTO Optimizer</button>
           <button onclick="switchTab('compare')" class="tab-underline transition-smooth hover:text-energy-purple">Compare</button>
           <button onclick="switchTab('trends')" class="tab-underline transition-smooth hover:text-energy-purple">Trends</button>
@@ -704,6 +705,74 @@
               <!-- Populated by JavaScript -->
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- AI TRIP DISCOVERY TAB -->
+      <div id="ai-discover-tab" class="tab-content hidden">
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- Left: Dashboard Widgets -->
+          <div class="space-y-4">
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
+              <h3 class="text-sm font-semibold text-gray-400 mb-3">PTO Balance</h3>
+              <div class="text-4xl font-bold text-energy-teal mb-1">15 <span class="text-lg text-gray-500">days</span></div>
+              <div class="h-2 bg-gray-700 rounded-full mt-2 mb-2"><div class="h-full bg-energy-teal rounded-full" style="width:88%"></div></div>
+              <p class="text-xs text-gray-500">2 used · 15 remaining · Use by May 2027</p>
+            </div>
+            <div class="bg-gradient-to-br from-energy-purple/20 to-energy-teal/10 rounded-xl border border-energy-purple/30 p-5">
+              <h3 class="text-sm font-semibold text-energy-purple mb-2">🔥 Best Opportunity</h3>
+              <p class="text-white font-bold text-lg" id="bestOppText">Loading...</p>
+              <p class="text-gray-400 text-sm" id="bestOppDetail">Scanning holidays...</p>
+            </div>
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
+              <h3 class="text-sm font-semibold text-gray-400 mb-3">Saved Destinations</h3>
+              <div id="savedDestList" class="space-y-2 text-sm">
+                <p class="text-gray-500 text-xs">Save destinations from AI recommendations</p>
+              </div>
+            </div>
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
+              <h3 class="text-sm font-semibold text-gray-400 mb-3">Quick Filters</h3>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="aiFilter('cheapest')" class="px-3 py-1.5 bg-green-900/30 text-green-400 border border-green-700/50 rounded-lg text-xs font-semibold hover:bg-green-900/50 transition-smooth">💰 Cheapest</button>
+                <button onclick="aiFilter('warm')" class="px-3 py-1.5 bg-orange-900/30 text-orange-400 border border-orange-700/50 rounded-lg text-xs font-semibold hover:bg-orange-900/50 transition-smooth">☀️ Warm Weather</button>
+                <button onclick="aiFilter('nopassport')" class="px-3 py-1.5 bg-blue-900/30 text-blue-400 border border-blue-700/50 rounded-lg text-xs font-semibold hover:bg-blue-900/50 transition-smooth">🇺🇸 No Passport</button>
+                <button onclick="aiFilter('weekend')" class="px-3 py-1.5 bg-purple-900/30 text-purple-400 border border-purple-700/50 rounded-lg text-xs font-semibold hover:bg-purple-900/50 transition-smooth">🗓️ Weekend Trip</button>
+                <button onclick="aiFilter('surprise')" class="px-3 py-1.5 bg-energy-coral/20 text-energy-coral border border-energy-coral/40 rounded-lg text-xs font-semibold hover:bg-energy-coral/30 transition-smooth">🎲 Surprise Me!</button>
+              </div>
+            </div>
+          </div>
+          <!-- Right: Chat Interface -->
+          <div class="md:col-span-2">
+            <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden flex flex-col" style="min-height:580px">
+              <div class="bg-gradient-to-r from-energy-purple to-energy-teal p-4 flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl">🤖</div>
+                <div>
+                  <h3 class="font-bold text-white">AI Trip Discovery</h3>
+                  <p class="text-white/70 text-xs">Powered by Claude · Finds your perfect trip using PTO data</p>
+                </div>
+              </div>
+              <div id="aiChatMessages" class="flex-1 p-4 space-y-4 overflow-y-auto" style="max-height:400px"></div>
+              <div class="border-t border-gray-700 p-4">
+                <div class="flex gap-2">
+                  <input type="text" id="aiChatInput" placeholder="Tell me about your dream vacation..." 
+                    class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-energy-purple focus:outline-none text-sm"
+                    onkeydown="if(event.key==='Enter')sendAIChat()">
+                  <button onclick="sendAIChat()" class="px-5 py-3 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold text-sm hover:opacity-90 transition-smooth">Send</button>
+                </div>
+                <div class="flex flex-wrap gap-2 mt-2">
+                  <button onclick="aiQuickPrompt('Beach vacation under $300')" class="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-gray-400 hover:border-energy-purple transition-smooth">🏖️ Beach under $300</button>
+                  <button onclick="aiQuickPrompt('Long weekend getaway')" class="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-gray-400 hover:border-energy-purple transition-smooth">🗓️ Long weekend</button>
+                  <button onclick="aiQuickPrompt('Best use of my PTO this year')" class="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-gray-400 hover:border-energy-purple transition-smooth">⚡ Best PTO use</button>
+                  <button onclick="aiQuickPrompt('Surprise me with something fun')" class="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-xs text-gray-400 hover:border-energy-purple transition-smooth">🎲 Surprise me</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Destination Cards -->
+        <div id="aiDestCards" class="mt-6 hidden">
+          <h3 class="font-bold text-xl text-white mb-4">🌎 Recommended Destinations</h3>
+          <div id="aiDestGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
       </div>
 
@@ -1836,6 +1905,304 @@ Best strategy: [explanation]`;
 
       resultsDiv.innerHTML = html;
     }
+
+    // ==========================================
+    // AI TRIP DISCOVERY
+    // ==========================================
+
+    // Destination database with metadata
+    const destinations = [
+      { code:'MIA', name:'Miami', emoji:'🌴', region:'US', passport:false, climate:'tropical', avgTemp:82, flightHrs:2.5, baseCost:220, vibe:['beach','nightlife','food'], desc:'White sand beaches, Art Deco, vibrant nightlife' },
+      { code:'CUN', name:'Cancun', emoji:'🏖️', region:'MX', passport:true, climate:'tropical', avgTemp:84, flightHrs:2.75, baseCost:280, vibe:['beach','resort','adventure'], desc:'All-inclusive resorts, Mayan ruins, crystal water' },
+      { code:'LAX', name:'Los Angeles', emoji:'☀️', region:'US', passport:false, climate:'warm', avgTemp:75, flightHrs:3.5, baseCost:195, vibe:['city','beach','entertainment'], desc:'Hollywood, beaches, incredible food scene' },
+      { code:'LAS', name:'Las Vegas', emoji:'🎰', region:'US', passport:false, climate:'hot', avgTemp:85, flightHrs:2.5, baseCost:160, vibe:['nightlife','entertainment','food'], desc:'Shows, casinos, day trips to Grand Canyon' },
+      { code:'NYC', name:'New York', emoji:'🗽', region:'US', passport:false, climate:'varied', avgTemp:55, flightHrs:3.5, baseCost:185, vibe:['city','food','culture','shopping'], desc:'Broadway, world-class museums, iconic skyline' },
+      { code:'ORD', name:'Chicago', emoji:'🏙️', region:'US', passport:false, climate:'cold', avgTemp:50, flightHrs:2.5, baseCost:145, vibe:['city','food','culture'], desc:'Deep dish pizza, architecture, lakefront' },
+      { code:'DEN', name:'Denver', emoji:'🏔️', region:'US', passport:false, climate:'cool', avgTemp:55, flightHrs:2, baseCost:140, vibe:['outdoors','adventure','nature'], desc:'Rocky Mountains, hiking, craft beer capital' },
+      { code:'SFO', name:'San Francisco', emoji:'🌁', region:'US', passport:false, climate:'mild', avgTemp:62, flightHrs:3.75, baseCost:210, vibe:['city','food','culture','nature'], desc:'Golden Gate, Napa Valley, tech culture' },
+      { code:'SEA', name:'Seattle', emoji:'☕', region:'US', passport:false, climate:'cool', avgTemp:55, flightHrs:4, baseCost:230, vibe:['city','food','nature','coffee'], desc:'Pike Place Market, mountains, coffee culture' },
+      { code:'HNL', name:'Honolulu', emoji:'🏝️', region:'US', passport:false, climate:'tropical', avgTemp:80, flightHrs:8, baseCost:420, vibe:['beach','nature','adventure','relaxation'], desc:'Paradise beaches, volcanoes, aloha spirit' },
+      { code:'SJU', name:'San Juan', emoji:'🇵🇷', region:'US', passport:false, climate:'tropical', avgTemp:82, flightHrs:4, baseCost:310, vibe:['beach','culture','food','history'], desc:'Old San Juan, beaches, no passport needed' },
+      { code:'CDG', name:'Paris', emoji:'🇫🇷', region:'EU', passport:true, climate:'mild', avgTemp:55, flightHrs:10, baseCost:580, vibe:['culture','food','romance','history'], desc:'Eiffel Tower, Louvre, world-class cuisine' },
+      { code:'LHR', name:'London', emoji:'🇬🇧', region:'EU', passport:true, climate:'cool', avgTemp:52, flightHrs:9.5, baseCost:540, vibe:['culture','history','food','shopping'], desc:'Big Ben, theatre, pubs, royal history' },
+    ];
+
+    let aiChatHistory = [];
+    let aiSavedDests = JSON.parse(localStorage.getItem('aiSavedDests') || '[]');
+
+    // Initialize AI chat with welcome message
+    function initAIChat() {
+      const msgs = document.getElementById('aiChatMessages');
+      if (!msgs) return;
+
+      addAIMessage('bot', `Hey! 👋 I'm your AI travel assistant. I know your PTO situation — <strong>15 days remaining</strong>, deadline May 2027, flying out of <strong>DFW</strong>.
+
+Tell me what you're looking for and I'll find the best trips that maximize your time off. You can say things like:
+
+• "I want a beach vacation under $300"
+• "What's the best way to use my PTO around Thanksgiving?"
+• "Weekend getaway somewhere warm"
+• "Surprise me!"
+
+Or click any quick filter on the left. What sounds good?`);
+
+      // Calculate best opportunity
+      computeBestOpportunity();
+      renderSavedDests();
+    }
+
+    function addAIMessage(role, text) {
+      const msgs = document.getElementById('aiChatMessages');
+      const isBot = role === 'bot';
+      const div = document.createElement('div');
+      div.className = `flex ${isBot ? '' : 'justify-end'}`;
+      div.innerHTML = `
+        <div class="${isBot ? 'bg-gray-800 border border-gray-700' : 'bg-energy-purple/20 border border-energy-purple/30'} rounded-xl p-4 max-w-[85%]">
+          ${isBot ? '<div class="flex items-center gap-2 mb-2"><span class="text-sm">🤖</span><span class="text-xs font-semibold text-energy-teal">AI Assistant</span></div>' : ''}
+          <div class="text-sm text-gray-200 leading-relaxed">${text}</div>
+        </div>
+      `;
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function sendAIChat() {
+      const input = document.getElementById('aiChatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      addAIMessage('user', text);
+      processAIQuery(text);
+    }
+
+    function aiQuickPrompt(text) {
+      document.getElementById('aiChatInput').value = '';
+      addAIMessage('user', text);
+      processAIQuery(text);
+    }
+
+    function aiFilter(filter) {
+      const filterMap = {
+        'cheapest': 'Show me the cheapest destinations from DFW',
+        'warm': 'I want somewhere warm and sunny',
+        'nopassport': 'Where can I go without a passport?',
+        'weekend': 'Best weekend getaway options',
+        'surprise': 'Surprise me with a random fun destination!'
+      };
+      const text = filterMap[filter] || filter;
+      addAIMessage('user', text);
+      processAIQuery(text);
+    }
+
+    function processAIQuery(query) {
+      const q = query.toLowerCase();
+
+      // Determine filters from natural language
+      let filtered = [...destinations];
+      let explanation = '';
+
+      if (q.includes('surprise') || q.includes('random')) {
+        // Shuffle and pick 3 random
+        filtered = filtered.sort(() => Math.random() - 0.5).slice(0, 3);
+        explanation = 'Rolling the dice... here are 3 random picks for you! 🎲';
+      } else {
+        // Budget filter
+        if (q.includes('cheap') || q.includes('budget') || q.match(/under \$?\d+/)) {
+          const match = q.match(/under \$?(\d+)/);
+          const budget = match ? parseInt(match[1]) : 300;
+          filtered = filtered.filter(d => d.baseCost * 2 <= budget * 2);
+          explanation += `Filtering for round-trip under ~$${budget}. `;
+        }
+
+        // Weather filter
+        if (q.includes('warm') || q.includes('sun') || q.includes('beach') || q.includes('tropical') || q.includes('hot')) {
+          filtered = filtered.filter(d => d.avgTemp >= 75 || d.climate === 'tropical');
+          explanation += 'Looking for warm/tropical destinations. ';
+        }
+        if (q.includes('cold') || q.includes('snow') || q.includes('winter')) {
+          filtered = filtered.filter(d => d.avgTemp < 55 || d.climate === 'cold' || d.climate === 'cool');
+          explanation += 'Looking for cooler climates. ';
+        }
+
+        // Passport filter
+        if (q.includes('no passport') || q.includes('without passport') || q.includes('domestic') || q.includes('passport')) {
+          filtered = filtered.filter(d => !d.passport);
+          explanation += 'Only places that don\'t need a passport. ';
+        }
+
+        // Weekend filter
+        if (q.includes('weekend') || q.includes('short') || q.includes('quick')) {
+          filtered = filtered.filter(d => d.flightHrs <= 4);
+          explanation += 'Short flights (under 4 hours) for weekend trips. ';
+        }
+
+        // Vibe filters
+        const vibeMap = { 'beach': 'beach', 'food': 'food', 'culture': 'culture', 'nightlife': 'nightlife', 'hiking': 'outdoors', 'outdoor': 'outdoors', 'adventure': 'adventure', 'nature': 'nature', 'shopping': 'shopping', 'romantic': 'romance', 'history': 'history' };
+        Object.keys(vibeMap).forEach(keyword => {
+          if (q.includes(keyword)) {
+            filtered = filtered.filter(d => d.vibe.includes(vibeMap[keyword]));
+            explanation += `Matching "${keyword}" vibe. `;
+          }
+        });
+
+        // PTO-related queries
+        if (q.includes('pto') || q.includes('thanksgiving') || q.includes('christmas') || q.includes('best use') || q.includes('maximize')) {
+          explanation += 'Using your PTO optimizer data to find the best windows. ';
+        }
+      }
+
+      if (filtered.length === 0) {
+        filtered = destinations.slice(0, 3);
+        explanation = 'No exact matches, but here are some great options from DFW:';
+      }
+
+      // Score and rank
+      const holidaySet = getCompanyHolidaySet();
+      const scored = filtered.map(d => {
+        const price = estimateFlightPrice(d.code, new Date().toISOString().split('T')[0], new Date(Date.now() + 5*86400000).toISOString().split('T')[0]);
+        return { ...d, estPrice: price, score: Math.round((price / 600) * 40 + (d.flightHrs / 10) * 30 + (d.avgTemp > 75 ? 0 : 15) + (d.passport ? 15 : 0)) };
+      });
+      scored.sort((a, b) => a.score - b.score);
+
+      const top = scored.slice(0, 4);
+
+      // Build response
+      let response = explanation ? `<p class="mb-3">${explanation}</p>` : '';
+      response += `<p class="mb-3">Based on your <strong>15 PTO days</strong> and <strong>DFW</strong> departure, here's what I found:</p>`;
+
+      top.forEach((d, i) => {
+        const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '•';
+        response += `<div class="bg-gray-700/30 rounded-lg p-3 mb-2">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-white">${rank} ${d.emoji} ${d.name}</span>
+            <span class="text-energy-teal font-bold">~$${d.estPrice}</span>
+          </div>
+          <p class="text-xs text-gray-400 mt-1">${d.desc}</p>
+          <div class="flex gap-2 mt-2">
+            <span class="text-xs px-2 py-0.5 bg-gray-700 rounded text-gray-300">${d.flightHrs}h flight</span>
+            <span class="text-xs px-2 py-0.5 bg-gray-700 rounded text-gray-300">${d.avgTemp}°F</span>
+            ${!d.passport ? '<span class="text-xs px-2 py-0.5 bg-blue-900/50 rounded text-blue-300">No passport</span>' : '<span class="text-xs px-2 py-0.5 bg-orange-900/50 rounded text-orange-300">Passport needed</span>'}
+          </div>
+        </div>`;
+      });
+
+      response += `<p class="mt-3 text-xs text-gray-500">Click a destination below for booking links, or tell me more about what you're looking for!</p>`;
+
+      setTimeout(() => {
+        addAIMessage('bot', response);
+        showDestCards(top);
+      }, 600);
+    }
+
+    function showDestCards(dests) {
+      const container = document.getElementById('aiDestCards');
+      const grid = document.getElementById('aiDestGrid');
+      container.classList.remove('hidden');
+
+      grid.innerHTML = dests.map(d => {
+        const googleUrl = getBookingUrlWithDates('google', 'DFW', d.code, '', '');
+        const kayakUrl = `https://www.kayak.com/explore/DFW/?budget=&duration=&flightType=round&sort=rank`;
+        return `
+          <div class="bg-gray-900 rounded-xl border border-gray-800 p-5 hover:border-energy-purple/50 transition-all">
+            <div class="flex justify-between items-start mb-3">
+              <div>
+                <h4 class="font-bold text-lg text-white">${d.emoji} ${d.name}</h4>
+                <p class="text-gray-500 text-xs">${d.code} · ${d.flightHrs}h from DFW</p>
+              </div>
+              <div class="text-right">
+                <div class="text-energy-teal font-bold text-xl">~$${d.estPrice}</div>
+                <div class="text-gray-500 text-xs">round-trip est.</div>
+              </div>
+            </div>
+            <p class="text-gray-400 text-sm mb-3">${d.desc}</p>
+            <div class="flex flex-wrap gap-1 mb-3">
+              ${d.vibe.map(v => `<span class="text-xs px-2 py-0.5 bg-gray-800 rounded text-gray-400">${v}</span>`).join('')}
+            </div>
+            <div class="flex flex-wrap gap-2 mb-3">
+              <span class="text-xs px-2 py-1 ${d.avgTemp >= 75 ? 'bg-orange-900/30 text-orange-400' : 'bg-blue-900/30 text-blue-400'} rounded">${d.avgTemp}°F avg</span>
+              ${!d.passport ? '<span class="text-xs px-2 py-1 bg-green-900/30 text-green-400 rounded">No passport</span>' : '<span class="text-xs px-2 py-1 bg-yellow-900/30 text-yellow-400 rounded">Passport req.</span>'}
+            </div>
+            <div class="flex gap-2 pt-3 border-t border-gray-800">
+              <a href="${googleUrl}" target="_blank" class="flex-1 text-center px-2 py-1.5 bg-energy-teal text-black rounded font-semibold text-xs hover:opacity-80 no-underline">Google Flights</a>
+              <a href="${kayakUrl}" target="_blank" class="flex-1 text-center px-2 py-1.5 bg-energy-coral text-black rounded font-semibold text-xs hover:opacity-80 no-underline">Kayak Explore</a>
+              <button onclick="saveAIDest('${d.code}','${d.name}','${d.emoji}')" class="px-3 py-1.5 bg-energy-purple/20 text-energy-purple rounded font-semibold text-xs hover:bg-energy-purple/30">❤️</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function saveAIDest(code, name, emoji) {
+      if (!aiSavedDests.find(d => d.code === code)) {
+        aiSavedDests.push({ code, name, emoji, savedAt: new Date().toLocaleDateString() });
+        localStorage.setItem('aiSavedDests', JSON.stringify(aiSavedDests));
+        renderSavedDests();
+      }
+    }
+
+    function renderSavedDests() {
+      const el = document.getElementById('savedDestList');
+      if (!el) return;
+      if (aiSavedDests.length === 0) {
+        el.innerHTML = '<p class="text-gray-500 text-xs">Save destinations from AI recommendations</p>';
+        return;
+      }
+      el.innerHTML = aiSavedDests.map(d => `
+        <div class="flex justify-between items-center bg-gray-800 rounded-lg px-3 py-2">
+          <span class="text-white text-sm">${d.emoji} ${d.name}</span>
+          <button onclick="removeAIDest('${d.code}')" class="text-gray-500 hover:text-energy-coral text-xs">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function removeAIDest(code) {
+      aiSavedDests = aiSavedDests.filter(d => d.code !== code);
+      localStorage.setItem('aiSavedDests', JSON.stringify(aiSavedDests));
+      renderSavedDests();
+    }
+
+    function computeBestOpportunity() {
+      const holidaySet = getCompanyHolidaySet();
+      const today = new Date(); today.setHours(0,0,0,0);
+      let best = null;
+
+      [2026, 2027].forEach(year => {
+        (mockHolidays[year] || []).forEach(h => {
+          const hDate = new Date(h.date + 'T12:00:00');
+          if (hDate < today) return;
+          // Check window around this holiday
+          for (let pto = 1; pto <= 5; pto++) {
+            const start = new Date(hDate); start.setDate(hDate.getDate() - 3);
+            const end = new Date(hDate); end.setDate(hDate.getDate() + 3);
+            if (start < today) start.setTime(today.getTime());
+            const totalDays = countCalendarDays(start, end);
+            const ptoDays = countPTODays(start, end, holidaySet);
+            const value = ptoDays > 0 ? Math.round((totalDays / ptoDays) * 10) / 10 : totalDays;
+            if (!best || value > best.value) {
+              best = { holiday: h.name, totalDays, ptoDays, value };
+            }
+          }
+        });
+      });
+
+      if (best) {
+        const opp = document.getElementById('bestOppText');
+        const det = document.getElementById('bestOppDetail');
+        if (opp) opp.textContent = best.holiday + ' Week';
+        if (det) det.textContent = `${best.totalDays} days off using ${best.ptoDays} PTO days · ${best.value}x value`;
+      }
+    }
+
+    // Init AI chat on first tab switch
+    let aiInitialized = false;
+    const origSwitchTab = switchTab;
+    switchTab = function(tabName) {
+      origSwitchTab.call(this, tabName);
+      if (tabName === 'ai-discover' && !aiInitialized) {
+        aiInitialized = true;
+        setTimeout(initAIChat, 200);
+      }
+    };
   </script>
 </body>
 </html>
