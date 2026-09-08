@@ -739,6 +739,11 @@
                 <button onclick="aiFilter('weekend')" class="px-3 py-1.5 bg-purple-900/30 text-purple-400 border border-purple-700/50 rounded-lg text-xs font-semibold hover:bg-purple-900/50 transition-smooth">🗓️ Weekend Trip</button>
                 <button onclick="aiFilter('surprise')" class="px-3 py-1.5 bg-energy-coral/20 text-energy-coral border border-energy-coral/40 rounded-lg text-xs font-semibold hover:bg-energy-coral/30 transition-smooth">🎲 Surprise Me!</button>
               </div>
+              <h3 class="text-sm font-semibold text-gray-400 mt-4 mb-2">Sort Results</h3>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="aiSortCards('cost')" class="px-3 py-1.5 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-xs font-semibold hover:border-energy-teal transition-smooth">$ Lowest Cost</button>
+                <button onclick="aiSortCards('daysoff')" class="px-3 py-1.5 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-xs font-semibold hover:border-energy-teal transition-smooth">📅 Most Days Off</button>
+              </div>
             </div>
           </div>
           <!-- Right: Chat Interface -->
@@ -1912,19 +1917,19 @@ Best strategy: [explanation]`;
 
     // Destination database with metadata
     const destinations = [
-      { code:'MIA', name:'Miami', emoji:'🌴', region:'US', passport:false, climate:'tropical', avgTemp:82, flightHrs:2.5, baseCost:220, vibe:['beach','nightlife','food'], desc:'White sand beaches, Art Deco, vibrant nightlife' },
-      { code:'CUN', name:'Cancun', emoji:'🏖️', region:'MX', passport:true, climate:'tropical', avgTemp:84, flightHrs:2.75, baseCost:280, vibe:['beach','resort','adventure'], desc:'All-inclusive resorts, Mayan ruins, crystal water' },
-      { code:'LAX', name:'Los Angeles', emoji:'☀️', region:'US', passport:false, climate:'warm', avgTemp:75, flightHrs:3.5, baseCost:195, vibe:['city','beach','entertainment'], desc:'Hollywood, beaches, incredible food scene' },
-      { code:'LAS', name:'Las Vegas', emoji:'🎰', region:'US', passport:false, climate:'hot', avgTemp:85, flightHrs:2.5, baseCost:160, vibe:['nightlife','entertainment','food'], desc:'Shows, casinos, day trips to Grand Canyon' },
-      { code:'NYC', name:'New York', emoji:'🗽', region:'US', passport:false, climate:'varied', avgTemp:55, flightHrs:3.5, baseCost:185, vibe:['city','food','culture','shopping'], desc:'Broadway, world-class museums, iconic skyline' },
-      { code:'ORD', name:'Chicago', emoji:'🏙️', region:'US', passport:false, climate:'cold', avgTemp:50, flightHrs:2.5, baseCost:145, vibe:['city','food','culture'], desc:'Deep dish pizza, architecture, lakefront' },
-      { code:'DEN', name:'Denver', emoji:'🏔️', region:'US', passport:false, climate:'cool', avgTemp:55, flightHrs:2, baseCost:140, vibe:['outdoors','adventure','nature'], desc:'Rocky Mountains, hiking, craft beer capital' },
-      { code:'SFO', name:'San Francisco', emoji:'🌁', region:'US', passport:false, climate:'mild', avgTemp:62, flightHrs:3.75, baseCost:210, vibe:['city','food','culture','nature'], desc:'Golden Gate, Napa Valley, tech culture' },
-      { code:'SEA', name:'Seattle', emoji:'☕', region:'US', passport:false, climate:'cool', avgTemp:55, flightHrs:4, baseCost:230, vibe:['city','food','nature','coffee'], desc:'Pike Place Market, mountains, coffee culture' },
-      { code:'HNL', name:'Honolulu', emoji:'🏝️', region:'US', passport:false, climate:'tropical', avgTemp:80, flightHrs:8, baseCost:420, vibe:['beach','nature','adventure','relaxation'], desc:'Paradise beaches, volcanoes, aloha spirit' },
-      { code:'SJU', name:'San Juan', emoji:'🇵🇷', region:'US', passport:false, climate:'tropical', avgTemp:82, flightHrs:4, baseCost:310, vibe:['beach','culture','food','history'], desc:'Old San Juan, beaches, no passport needed' },
-      { code:'CDG', name:'Paris', emoji:'🇫🇷', region:'EU', passport:true, climate:'mild', avgTemp:55, flightHrs:10, baseCost:580, vibe:['culture','food','romance','history'], desc:'Eiffel Tower, Louvre, world-class cuisine' },
-      { code:'LHR', name:'London', emoji:'🇬🇧', region:'EU', passport:true, climate:'cool', avgTemp:52, flightHrs:9.5, baseCost:540, vibe:['culture','history','food','shopping'], desc:'Big Ben, theatre, pubs, royal history' },
+      { code:'MIA', name:'Miami', emoji:'🌴', region:'US', passport:false, climate:'tropical', avgTemp:82, flightHrs:2.5, baseCost:220, hotelPerNight:140, vibe:['beach','nightlife','food'], desc:'White sand beaches, Art Deco, vibrant nightlife', why:'Short flight from DFW, gorgeous beaches, and lively food scene — perfect for a quick warm getaway without a passport.' },
+      { code:'CUN', name:'Cancun', emoji:'🏖️', region:'MX', passport:true, climate:'tropical', avgTemp:84, flightHrs:2.75, baseCost:280, hotelPerNight:95, vibe:['beach','resort','adventure'], desc:'All-inclusive resorts, Mayan ruins, crystal water', why:'All-inclusive resorts mean predictable costs, and the short flight makes even a long weekend worth it.' },
+      { code:'LAX', name:'Los Angeles', emoji:'☀️', region:'US', passport:false, climate:'warm', avgTemp:75, flightHrs:3.5, baseCost:195, hotelPerNight:160, vibe:['city','beach','entertainment'], desc:'Hollywood, beaches, incredible food scene', why:'Beach plus city in one trip — Santa Monica in the morning, tacos in the evening, no passport needed.' },
+      { code:'LAS', name:'Las Vegas', emoji:'🎰', region:'US', passport:false, climate:'hot', avgTemp:85, flightHrs:2.5, baseCost:160, hotelPerNight:80, vibe:['nightlife','entertainment','food'], desc:'Shows, casinos, day trips to Grand Canyon', why:'One of the cheapest flights from DFW and hotels are a steal midweek — maximum fun per dollar.' },
+      { code:'NYC', name:'New York', emoji:'🗽', region:'US', passport:false, climate:'varied', avgTemp:55, flightHrs:3.5, baseCost:185, hotelPerNight:190, vibe:['city','food','culture','shopping'], desc:'Broadway, world-class museums, iconic skyline', why:'Unmatched culture density — you could spend a week and not repeat a neighborhood.' },
+      { code:'ORD', name:'Chicago', emoji:'🏙️', region:'US', passport:false, climate:'cold', avgTemp:50, flightHrs:2.5, baseCost:145, hotelPerNight:130, vibe:['city','food','culture'], desc:'Deep dish pizza, architecture, lakefront', why:'Under 3 hours from DFW and one of the cheapest routes — great food city on a budget.' },
+      { code:'DEN', name:'Denver', emoji:'🏔️', region:'US', passport:false, climate:'cool', avgTemp:55, flightHrs:2, baseCost:140, hotelPerNight:120, vibe:['outdoors','adventure','nature'], desc:'Rocky Mountains, hiking, craft beer capital', why:'Shortest flight from DFW, and the mountains are right there — ideal if you want nature without a long trip.' },
+      { code:'SFO', name:'San Francisco', emoji:'🌁', region:'US', passport:false, climate:'mild', avgTemp:62, flightHrs:3.75, baseCost:210, hotelPerNight:180, vibe:['city','food','culture','nature'], desc:'Golden Gate, Napa Valley, tech culture', why:'Pair with a Napa day trip for a food-and-wine vacation that feels European without the passport.' },
+      { code:'SEA', name:'Seattle', emoji:'☕', region:'US', passport:false, climate:'cool', avgTemp:55, flightHrs:4, baseCost:230, hotelPerNight:155, vibe:['city','food','nature','coffee'], desc:'Pike Place Market, mountains, coffee culture', why:'Underrated food city with mountain day-trip options — great if you want a chill, no-rush vibe.' },
+      { code:'HNL', name:'Honolulu', emoji:'🏝️', region:'US', passport:false, climate:'tropical', avgTemp:80, flightHrs:8, baseCost:420, hotelPerNight:200, vibe:['beach','nature','adventure','relaxation'], desc:'Paradise beaches, volcanoes, aloha spirit', why:'No passport needed for literal paradise — the long flight is worth it if you have 5+ days to spend.' },
+      { code:'SJU', name:'San Juan', emoji:'🇵🇷', region:'US', passport:false, climate:'tropical', avgTemp:82, flightHrs:4, baseCost:310, hotelPerNight:130, vibe:['beach','culture','food','history'], desc:'Old San Juan, beaches, no passport needed', why:'Caribbean vibes, no passport, and Old San Juan\'s cobblestone streets are unlike anywhere in the US.' },
+      { code:'CDG', name:'Paris', emoji:'🇫🇷', region:'EU', passport:true, climate:'mild', avgTemp:55, flightHrs:10, baseCost:580, hotelPerNight:170, vibe:['culture','food','romance','history'], desc:'Eiffel Tower, Louvre, world-class cuisine', why:'The quintessential bucket-list trip — worth saving PTO days for a full week immersion.' },
+      { code:'LHR', name:'London', emoji:'🇬🇧', region:'EU', passport:true, climate:'cool', avgTemp:52, flightHrs:9.5, baseCost:540, hotelPerNight:185, vibe:['culture','history','food','shopping'], desc:'Big Ben, theatre, pubs, royal history', why:'English-speaking, walkable, and the theatre scene alone justifies the trip.' },
     ];
 
     let aiChatHistory = [];
@@ -1994,99 +1999,124 @@ Or click any quick filter on the left. What sounds good?`);
       processAIQuery(text);
     }
 
+    let lastAIResults = []; // Store for sorting/comparing
+
     function processAIQuery(query) {
       const q = query.toLowerCase();
-
-      // Determine filters from natural language
       let filtered = [...destinations];
       let explanation = '';
+      let requestedPTO = null;
+      let totalBudget = null;
 
       if (q.includes('surprise') || q.includes('random')) {
-        // Shuffle and pick 3 random
         filtered = filtered.sort(() => Math.random() - 0.5).slice(0, 3);
-        explanation = 'Rolling the dice... here are 3 random picks for you! 🎲';
+        explanation = 'Rolling the dice... 🎲';
       } else {
-        // Budget filter
-        if (q.includes('cheap') || q.includes('budget') || q.match(/under \$?\d+/)) {
-          const match = q.match(/under \$?(\d+)/);
-          const budget = match ? parseInt(match[1]) : 300;
-          filtered = filtered.filter(d => d.baseCost * 2 <= budget * 2);
-          explanation += `Filtering for round-trip under ~$${budget}. `;
+        // Parse PTO days: "3 pto days", "with 3 days", "using 2 pto"
+        const ptoMatch = q.match(/(\d+)\s*(?:pto|days?\s*(?:of\s*)?pto|pto\s*days?)/);
+        if (ptoMatch) requestedPTO = parseInt(ptoMatch[1]);
+
+        // Parse total budget: "under $700", "$500 budget"
+        const budgetMatch = q.match(/(?:under|below|budget|max|within)\s*\$?(\d+)/);
+        if (budgetMatch) totalBudget = parseInt(budgetMatch[1]);
+
+        // Budget filter (using total trip cost: flight + hotel)
+        if (q.includes('cheap') || q.includes('budget') || totalBudget) {
+          const budget = totalBudget || 500;
+          const nights = requestedPTO || 3;
+          filtered = filtered.filter(d => (d.baseCost * 2 + d.hotelPerNight * nights) <= budget);
+          if (filtered.length === 0) {
+            // Relax: just sort by cost, show cheapest 3
+            filtered = [...destinations].sort((a, b) => (a.baseCost * 2 + a.hotelPerNight * 3) - (b.baseCost * 2 + b.hotelPerNight * 3)).slice(0, 3);
+            explanation += `Nothing quite under $${budget} total, but here are the most affordable options. `;
+          } else {
+            explanation += `Total trip under ~$${budget} (flight + ${nights} nights hotel). `;
+          }
         }
 
-        // Weather filter
+        // Weather
         if (q.includes('warm') || q.includes('sun') || q.includes('beach') || q.includes('tropical') || q.includes('hot')) {
           filtered = filtered.filter(d => d.avgTemp >= 75 || d.climate === 'tropical');
-          explanation += 'Looking for warm/tropical destinations. ';
+          explanation += 'Warm/tropical destinations. ';
         }
         if (q.includes('cold') || q.includes('snow') || q.includes('winter')) {
-          filtered = filtered.filter(d => d.avgTemp < 55 || d.climate === 'cold' || d.climate === 'cool');
-          explanation += 'Looking for cooler climates. ';
+          filtered = filtered.filter(d => d.avgTemp < 55);
+          explanation += 'Cooler climates. ';
         }
 
-        // Passport filter
-        if (q.includes('no passport') || q.includes('without passport') || q.includes('domestic') || q.includes('passport')) {
+        // Passport
+        if (q.includes('no passport') || q.includes('without passport') || q.includes('domestic')) {
           filtered = filtered.filter(d => !d.passport);
-          explanation += 'Only places that don\'t need a passport. ';
+          explanation += 'No passport needed. ';
         }
 
-        // Weekend filter
+        // Weekend / short
         if (q.includes('weekend') || q.includes('short') || q.includes('quick')) {
           filtered = filtered.filter(d => d.flightHrs <= 4);
-          explanation += 'Short flights (under 4 hours) for weekend trips. ';
+          explanation += 'Short flights for quick trips. ';
         }
 
-        // Vibe filters
-        const vibeMap = { 'beach': 'beach', 'food': 'food', 'culture': 'culture', 'nightlife': 'nightlife', 'hiking': 'outdoors', 'outdoor': 'outdoors', 'adventure': 'adventure', 'nature': 'nature', 'shopping': 'shopping', 'romantic': 'romance', 'history': 'history' };
-        Object.keys(vibeMap).forEach(keyword => {
-          if (q.includes(keyword)) {
-            filtered = filtered.filter(d => d.vibe.includes(vibeMap[keyword]));
-            explanation += `Matching "${keyword}" vibe. `;
+        // Vibes
+        const vibeMap = { 'beach':'beach', 'food':'food', 'culture':'culture', 'nightlife':'nightlife', 'hiking':'outdoors', 'outdoor':'outdoors', 'adventure':'adventure', 'nature':'nature', 'shopping':'shopping', 'romantic':'romance', 'history':'history', 'relax':'relaxation' };
+        Object.keys(vibeMap).forEach(kw => {
+          if (q.includes(kw)) {
+            filtered = filtered.filter(d => d.vibe.includes(vibeMap[kw]));
+            explanation += `"${kw}" vibe. `;
           }
         });
 
-        // PTO-related queries
-        if (q.includes('pto') || q.includes('thanksgiving') || q.includes('christmas') || q.includes('best use') || q.includes('maximize')) {
-          explanation += 'Using your PTO optimizer data to find the best windows. ';
+        // PTO-aware: if they specify PTO days, calculate total days off using PTO maximizer logic
+        if (requestedPTO) {
+          explanation += `Using ${requestedPTO} PTO day${requestedPTO > 1 ? 's' : ''}. `;
         }
       }
 
       if (filtered.length === 0) {
-        filtered = destinations.slice(0, 3);
-        explanation = 'No exact matches, but here are some great options from DFW:';
+        filtered = [...destinations].sort((a, b) => a.baseCost - b.baseCost).slice(0, 3);
+        explanation = 'No exact matches — here are the best affordable options: ';
       }
 
-      // Score and rank
+      // Score, enrich with PTO data and hotel costs
       const holidaySet = getCompanyHolidaySet();
+      const nights = requestedPTO || 3;
       const scored = filtered.map(d => {
-        const price = estimateFlightPrice(d.code, new Date().toISOString().split('T')[0], new Date(Date.now() + 5*86400000).toISOString().split('T')[0]);
-        return { ...d, estPrice: price, score: Math.round((price / 600) * 40 + (d.flightHrs / 10) * 30 + (d.avgTemp > 75 ? 0 : 15) + (d.passport ? 15 : 0)) };
+        const flightPrice = estimateFlightPrice(d.code, new Date().toISOString().split('T')[0], new Date(Date.now() + 5*86400000).toISOString().split('T')[0]);
+        const hotelTotal = d.hotelPerNight * nights;
+        const tripTotal = flightPrice + hotelTotal;
+        // PTO: calculate best window for next holiday
+        const ptoDays = requestedPTO || Math.min(3, Math.ceil(d.flightHrs > 6 ? 5 : 3));
+        const totalDaysOff = ptoDays + 2; // +weekends approximation
+        return { ...d, flightPrice, hotelTotal, tripTotal, ptoDays, totalDaysOff, nights,
+          score: Math.round((tripTotal / 1200) * 40 + (d.flightHrs / 10) * 20 + (d.passport ? 20 : 0) + (ptoDays / 10) * 20) };
       });
       scored.sort((a, b) => a.score - b.score);
 
-      const top = scored.slice(0, 4);
+      const top = scored.slice(0, 3);
+      lastAIResults = scored; // Store for sorting
 
-      // Build response
-      let response = explanation ? `<p class="mb-3">${explanation}</p>` : '';
-      response += `<p class="mb-3">Based on your <strong>15 PTO days</strong> and <strong>DFW</strong> departure, here's what I found:</p>`;
+      // Build chat response with "why this trip" 
+      let response = explanation ? `<p class="mb-3 text-gray-300">${explanation}</p>` : '';
+      response += `<p class="mb-4 text-gray-300">Here are my top picks from <strong>DFW</strong> (${nights} nights):</p>`;
 
       top.forEach((d, i) => {
-        const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '•';
-        response += `<div class="bg-gray-700/30 rounded-lg p-3 mb-2">
-          <div class="flex justify-between items-center">
-            <span class="font-bold text-white">${rank} ${d.emoji} ${d.name}</span>
-            <span class="text-energy-teal font-bold">~$${d.estPrice}</span>
-          </div>
-          <p class="text-xs text-gray-400 mt-1">${d.desc}</p>
-          <div class="flex gap-2 mt-2">
-            <span class="text-xs px-2 py-0.5 bg-gray-700 rounded text-gray-300">${d.flightHrs}h flight</span>
-            <span class="text-xs px-2 py-0.5 bg-gray-700 rounded text-gray-300">${d.avgTemp}°F</span>
-            ${!d.passport ? '<span class="text-xs px-2 py-0.5 bg-blue-900/50 rounded text-blue-300">No passport</span>' : '<span class="text-xs px-2 py-0.5 bg-orange-900/50 rounded text-orange-300">Passport needed</span>'}
-          </div>
-        </div>`;
+        const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
+        response += `
+          <div class="bg-gray-700/30 rounded-xl p-4 mb-3 border border-gray-700/50">
+            <div class="flex justify-between items-start mb-2">
+              <span class="font-bold text-white text-base">${rank} ${d.emoji} ${d.name}</span>
+              <span class="text-energy-teal font-bold">$${d.tripTotal} total</span>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-2 text-xs">
+              <span class="px-2 py-1 bg-gray-600/50 rounded text-gray-300">✈️ ${d.flightHrs}h flight</span>
+              <span class="px-2 py-1 bg-energy-purple/20 text-energy-purple rounded">${d.ptoDays} PTO days</span>
+              <span class="px-2 py-1 bg-energy-teal/20 text-energy-teal rounded">~${d.totalDaysOff} days off</span>
+              <span class="px-2 py-1 bg-gray-600/50 rounded text-gray-300">🏨 $${d.hotelPerNight}/night</span>
+            </div>
+            <p class="text-sm text-gray-400 italic leading-relaxed">"${d.why}"</p>
+          </div>`;
       });
 
-      response += `<p class="mt-3 text-xs text-gray-500">Click a destination below for booking links, or tell me more about what you're looking for!</p>`;
+      response += `<p class="mt-2 text-xs text-gray-500">Scroll down for full cards with booking links, or ask me to compare two destinations!</p>`;
 
       setTimeout(() => {
         addAIMessage('bot', response);
@@ -2098,38 +2128,140 @@ Or click any quick filter on the left. What sounds good?`);
       const container = document.getElementById('aiDestCards');
       const grid = document.getElementById('aiDestGrid');
       container.classList.remove('hidden');
+      lastAIResults = dests.length > 3 ? dests : lastAIResults;
 
-      grid.innerHTML = dests.map(d => {
+      grid.innerHTML = dests.map((d, i) => {
         const googleUrl = getBookingUrlWithDates('google', 'DFW', d.code, '', '');
         const kayakUrl = `https://www.kayak.com/explore/DFW/?budget=&duration=&flightType=round&sort=rank`;
+        const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
         return `
-          <div class="bg-gray-900 rounded-xl border border-gray-800 p-5 hover:border-energy-purple/50 transition-all">
-            <div class="flex justify-between items-start mb-3">
+          <div class="bg-gray-900 rounded-xl border border-gray-800 p-4 hover:border-energy-purple/50 transition-all flex flex-col" data-code="${d.code}" data-cost="${d.tripTotal}" data-days="${d.totalDaysOff}">
+            <!-- Header -->
+            <div class="flex justify-between items-start mb-2">
               <div>
-                <h4 class="font-bold text-lg text-white">${d.emoji} ${d.name}</h4>
+                <h4 class="font-bold text-white">${rank} ${d.emoji} ${d.name}</h4>
                 <p class="text-gray-500 text-xs">${d.code} · ${d.flightHrs}h from DFW</p>
               </div>
               <div class="text-right">
-                <div class="text-energy-teal font-bold text-xl">~$${d.estPrice}</div>
-                <div class="text-gray-500 text-xs">round-trip est.</div>
+                <div class="text-energy-teal font-bold text-lg">$${d.tripTotal}</div>
+                <div class="text-gray-500" style="font-size:10px">flight + ${d.nights || 3}n hotel</div>
               </div>
             </div>
-            <p class="text-gray-400 text-sm mb-3">${d.desc}</p>
-            <div class="flex flex-wrap gap-1 mb-3">
-              ${d.vibe.map(v => `<span class="text-xs px-2 py-0.5 bg-gray-800 rounded text-gray-400">${v}</span>`).join('')}
+            <!-- Key Stats Row -->
+            <div class="grid grid-cols-3 gap-2 mb-3 text-center">
+              <div class="bg-gray-800 rounded-lg py-2 px-1">
+                <div class="text-energy-purple font-bold text-sm">${d.ptoDays}</div>
+                <div class="text-gray-500" style="font-size:10px">PTO days</div>
+              </div>
+              <div class="bg-gray-800 rounded-lg py-2 px-1">
+                <div class="text-energy-teal font-bold text-sm">~${d.totalDaysOff}</div>
+                <div class="text-gray-500" style="font-size:10px">days off</div>
+              </div>
+              <div class="bg-gray-800 rounded-lg py-2 px-1">
+                <div class="text-white font-bold text-sm">${d.avgTemp}°</div>
+                <div class="text-gray-500" style="font-size:10px">${d.climate}</div>
+              </div>
             </div>
-            <div class="flex flex-wrap gap-2 mb-3">
-              <span class="text-xs px-2 py-1 ${d.avgTemp >= 75 ? 'bg-orange-900/30 text-orange-400' : 'bg-blue-900/30 text-blue-400'} rounded">${d.avgTemp}°F avg</span>
-              ${!d.passport ? '<span class="text-xs px-2 py-1 bg-green-900/30 text-green-400 rounded">No passport</span>' : '<span class="text-xs px-2 py-1 bg-yellow-900/30 text-yellow-400 rounded">Passport req.</span>'}
+            <!-- Cost Breakdown -->
+            <div class="flex justify-between text-xs text-gray-500 mb-2 px-1">
+              <span>✈️ ~$${d.flightPrice} flight</span>
+              <span>🏨 ~$${d.hotelTotal} hotel</span>
+              ${!d.passport ? '<span class="text-green-400">No passport</span>' : '<span class="text-yellow-400">Passport req.</span>'}
             </div>
-            <div class="flex gap-2 pt-3 border-t border-gray-800">
-              <a href="${googleUrl}" target="_blank" class="flex-1 text-center px-2 py-1.5 bg-energy-teal text-black rounded font-semibold text-xs hover:opacity-80 no-underline">Google Flights</a>
-              <a href="${kayakUrl}" target="_blank" class="flex-1 text-center px-2 py-1.5 bg-energy-coral text-black rounded font-semibold text-xs hover:opacity-80 no-underline">Kayak Explore</a>
-              <button onclick="saveAIDest('${d.code}','${d.name}','${d.emoji}')" class="px-3 py-1.5 bg-energy-purple/20 text-energy-purple rounded font-semibold text-xs hover:bg-energy-purple/30">❤️</button>
+            <!-- Why This Trip -->
+            <div class="bg-gray-800/50 rounded-lg p-3 mb-3 flex-1">
+              <p class="text-xs text-gray-400 italic leading-relaxed">${d.why}</p>
+            </div>
+            <!-- Actions -->
+            <div class="flex gap-2 pt-2 border-t border-gray-800 mt-auto">
+              <a href="${googleUrl}" target="_blank" class="flex-1 text-center py-2 bg-energy-teal text-black rounded-lg font-semibold text-xs hover:opacity-80 no-underline">Google Flights</a>
+              <a href="${kayakUrl}" target="_blank" class="flex-1 text-center py-2 bg-energy-coral text-black rounded-lg font-semibold text-xs hover:opacity-80 no-underline">Kayak</a>
+              <button onclick="toggleCompare('${d.code}')" class="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg text-xs font-semibold hover:bg-energy-purple/20 hover:text-energy-purple transition-smooth" id="cmp-${d.code}">⚖️</button>
+              <button onclick="saveAIDest('${d.code}','${d.name}','${d.emoji}')" class="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg text-xs font-semibold hover:bg-energy-coral/20 hover:text-energy-coral transition-smooth">❤️</button>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    // --- Compare Mode ---
+    let compareList = [];
+    function toggleCompare(code) {
+      const btn = document.getElementById('cmp-' + code);
+      if (compareList.includes(code)) {
+        compareList = compareList.filter(c => c !== code);
+        if (btn) { btn.classList.remove('bg-energy-purple/30', 'text-energy-purple'); btn.classList.add('bg-gray-800', 'text-gray-300'); }
+      } else {
+        if (compareList.length >= 2) { 
+          const old = compareList.shift();
+          const oldBtn = document.getElementById('cmp-' + old);
+          if (oldBtn) { oldBtn.classList.remove('bg-energy-purple/30', 'text-energy-purple'); oldBtn.classList.add('bg-gray-800', 'text-gray-300'); }
+        }
+        compareList.push(code);
+        if (btn) { btn.classList.add('bg-energy-purple/30', 'text-energy-purple'); btn.classList.remove('bg-gray-800', 'text-gray-300'); }
+      }
+      if (compareList.length === 2) showCompare();
+      else hideCompare();
+    }
+
+    function showCompare() {
+      const a = lastAIResults.find(d => d.code === compareList[0]);
+      const b = lastAIResults.find(d => d.code === compareList[1]);
+      if (!a || !b) return;
+
+      let existing = document.getElementById('comparePanel');
+      if (!existing) {
+        existing = document.createElement('div');
+        existing.id = 'comparePanel';
+        document.getElementById('aiDestCards').appendChild(existing);
+      }
+
+      const better = (va, vb, lower) => lower ? (va < vb ? 'text-green-400' : va > vb ? 'text-red-400' : 'text-gray-300') : (va > vb ? 'text-green-400' : va < vb ? 'text-red-400' : 'text-gray-300');
+
+      existing.innerHTML = `
+        <div class="mt-6 bg-gray-900 rounded-xl border border-energy-purple/40 p-6">
+          <h3 class="font-bold text-lg text-white mb-4">⚖️ Side-by-Side Comparison</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-700">
+                  <th class="text-left py-2 px-3 text-gray-500 font-semibold"></th>
+                  <th class="text-center py-2 px-3 text-white font-bold text-base">${a.emoji} ${a.name}</th>
+                  <th class="text-center py-2 px-3 text-white font-bold text-base">${b.emoji} ${b.name}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">✈️ Flight Time</td><td class="py-3 px-3 text-center font-semibold ${better(a.flightHrs, b.flightHrs, true)}">${a.flightHrs}h</td><td class="py-3 px-3 text-center font-semibold ${better(b.flightHrs, a.flightHrs, true)}">${b.flightHrs}h</td></tr>
+                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">📅 PTO Days</td><td class="py-3 px-3 text-center font-semibold ${better(a.ptoDays, b.ptoDays, true)}">${a.ptoDays} days</td><td class="py-3 px-3 text-center font-semibold ${better(b.ptoDays, a.ptoDays, true)}">${b.ptoDays} days</td></tr>
+                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">🏖️ Total Days Off</td><td class="py-3 px-3 text-center font-semibold ${better(a.totalDaysOff, b.totalDaysOff, false)}">${a.totalDaysOff} days</td><td class="py-3 px-3 text-center font-semibold ${better(b.totalDaysOff, a.totalDaysOff, false)}">${b.totalDaysOff} days</td></tr>
+                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">✈️ Est. Flight</td><td class="py-3 px-3 text-center font-semibold ${better(a.flightPrice, b.flightPrice, true)}">$${a.flightPrice}</td><td class="py-3 px-3 text-center font-semibold ${better(b.flightPrice, a.flightPrice, true)}">$${b.flightPrice}</td></tr>
+                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">🏨 Est. Hotel</td><td class="py-3 px-3 text-center font-semibold ${better(a.hotelTotal, b.hotelTotal, true)}">$${a.hotelTotal} (${a.nights || 3}n)</td><td class="py-3 px-3 text-center font-semibold ${better(b.hotelTotal, a.hotelTotal, true)}">$${b.hotelTotal} (${b.nights || 3}n)</td></tr>
+                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400 font-bold">💰 Total Cost</td><td class="py-3 px-3 text-center font-bold text-lg ${better(a.tripTotal, b.tripTotal, true)}">$${a.tripTotal}</td><td class="py-3 px-3 text-center font-bold text-lg ${better(b.tripTotal, a.tripTotal, true)}">$${b.tripTotal}</td></tr>
+                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">🌡️ Avg Temp</td><td class="py-3 px-3 text-center">${a.avgTemp}°F</td><td class="py-3 px-3 text-center">${b.avgTemp}°F</td></tr>
+                <tr><td class="py-3 px-3 text-gray-400">🛂 Passport</td><td class="py-3 px-3 text-center">${a.passport ? '🟡 Needed' : '🟢 Not needed'}</td><td class="py-3 px-3 text-center">${b.passport ? '🟡 Needed' : '🟢 Not needed'}</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 text-center">
+            <button onclick="hideCompare(); compareList = [];" class="text-gray-500 text-xs hover:text-white">Close comparison</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function hideCompare() {
+      const panel = document.getElementById('comparePanel');
+      if (panel) panel.innerHTML = '';
+    }
+
+    // --- Sort Cards ---
+    function aiSortCards(sortBy) {
+      if (lastAIResults.length === 0) return;
+      let sorted = [...lastAIResults];
+      if (sortBy === 'cost') sorted.sort((a, b) => a.tripTotal - b.tripTotal);
+      else if (sortBy === 'daysoff') sorted.sort((a, b) => b.totalDaysOff - a.totalDaysOff);
+      showDestCards(sorted.slice(0, 6));
+      addAIMessage('bot', `Results re-sorted by <strong>${sortBy === 'cost' ? 'lowest total cost' : 'most days off'}</strong>. Cards updated below! 👇`);
     }
 
     function saveAIDest(code, name, emoji) {
