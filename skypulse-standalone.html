@@ -256,6 +256,7 @@
         </div>
         <div class="hidden md:flex items-center space-x-8">
           <button onclick="switchTab('search')" class="tab-underline active transition-smooth hover:text-energy-purple">Search</button>
+          <button onclick="switchTab('pto')" class="tab-underline transition-smooth hover:text-energy-purple">⚡ PTO Optimizer</button>
           <button onclick="switchTab('compare')" class="tab-underline transition-smooth hover:text-energy-purple">Compare</button>
           <button onclick="switchTab('trends')" class="tab-underline transition-smooth hover:text-energy-purple">Trends</button>
           <button onclick="switchTab('vacation')" class="tab-underline transition-smooth hover:text-energy-purple">📅 Days Off</button>
@@ -559,6 +560,90 @@
           <div id="trendsResults" class="hidden">
             <div class="space-y-4">
               <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PTO OPTIMIZER TAB -->
+      <div id="pto-tab" class="tab-content hidden">
+        <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
+          <h2 class="font-display text-3xl font-bold mb-2">⚡ PTO Date Optimizer</h2>
+          <p class="text-gray-400 mb-6">Find the best travel dates that balance flight cost and PTO days used</p>
+
+          <!-- How it works -->
+          <div class="bg-energy-purple/10 border border-energy-purple/30 rounded-xl p-4 mb-8 text-sm text-gray-300">
+            <strong class="text-energy-purple">How it works:</strong> Pick a holiday + destination + max PTO days. The optimizer generates all travel date combinations within ±5 days of the holiday, estimates prices, calculates PTO used, and scores each option. Lower score = better deal. Click <strong>"Book Now"</strong> to see real prices and book on Google Flights, Kayak, or Southwest.
+          </div>
+
+          <!-- PTO Form -->
+          <div class="grid md:grid-cols-5 gap-4 mb-8">
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Holiday</label>
+              <select id="ptoHoliday" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="">Select holiday...</option>
+                <option value="2026-05-25|Memorial Day">Memorial Day (May 25)</option>
+                <option value="2026-07-04|Independence Day">Independence Day (Jul 4)</option>
+                <option value="2026-09-07|Labor Day">Labor Day (Sep 7)</option>
+                <option value="2026-11-26|Thanksgiving">Thanksgiving (Nov 26)</option>
+                <option value="2026-12-25|Christmas">Christmas (Dec 25)</option>
+                <option value="2027-01-01|New Year">New Year (Jan 1)</option>
+                <option value="2027-01-18|MLK Day">MLK Day (Jan 18)</option>
+                <option value="2027-02-15|Presidents Day">Presidents Day (Feb 15)</option>
+                <option value="2027-05-31|Memorial Day">Memorial Day (May 31)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">From</label>
+              <select id="ptoDeparture" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="DFW">Dallas (DFW)</option>
+                <option value="IAH">Houston (IAH)</option>
+                <option value="AUS">Austin (AUS)</option>
+                <option value="SAT">San Antonio (SAT)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Destination</label>
+              <select id="ptoDestination" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="">Select destination...</option>
+                <option value="MIA">Miami (MIA) 🌴</option>
+                <option value="CUN">Cancun (CUN) 🏖️</option>
+                <option value="LAX">Los Angeles (LAX) ☀️</option>
+                <option value="LAS">Las Vegas (LAS) 🎰</option>
+                <option value="NYC">New York (JFK) 🗽</option>
+                <option value="ORD">Chicago (ORD) 🇺🇸</option>
+                <option value="DEN">Denver (DEN) 🏔️</option>
+                <option value="SFO">San Francisco (SFO) 🌁</option>
+                <option value="SEA">Seattle (SEA) ☕</option>
+                <option value="HNL">Honolulu (HNL) 🏝️</option>
+                <option value="SJU">San Juan (SJU) 🇵🇷</option>
+                <option value="CDG">Paris (CDG) 🇫🇷</option>
+                <option value="LHR">London (LHR) 🇬🇧</option>
+                <option value="CRC">Costa Rica (SJO) 🇨🇷</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Max PTO Days</label>
+              <select id="ptoMaxDays" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:border-energy-purple focus:outline-none">
+                <option value="2">2 days</option>
+                <option value="3">3 days</option>
+                <option value="5" selected>5 days</option>
+                <option value="7">7 days</option>
+                <option value="10">10 days</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <button onclick="runPTOOptimizer()" class="w-full py-2 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold hover:shadow-lg transition-smooth hover:scale-105">
+                ⚡ Optimize
+              </button>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div id="ptoResults">
+            <div class="text-center py-12 text-gray-400">
+              <iconify-icon icon="mdi:calendar-check" width="48" class="mx-auto mb-4 opacity-50"></iconify-icon>
+              <p>Select a holiday and destination, then click Optimize</p>
             </div>
           </div>
         </div>
@@ -1225,10 +1310,26 @@ Best strategy: [explanation]`;
               <span>${flight.stops === 0 ? '✅ Nonstop' : flight.stops + ' stop (Direct)'}</span>
             </div>
           </div>
-          <button onclick="saveTrip('${flight.airline}', ${flight.price}, '${selectedHoliday.name}')" class="w-full py-2 bg-energy-purple hover:bg-energy-purple/80 rounded-lg font-semibold transition-smooth flex items-center justify-center space-x-2">
-            <iconify-icon icon="mdi:heart-outline"></iconify-icon>
-            <span>Save Trip</span>
-          </button>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <a href="${getBookingUrl('google', destination, selectedHoliday.date, flight.airline)}" target="_blank" class="py-2 bg-energy-teal text-black rounded-lg font-semibold transition-smooth flex items-center justify-center space-x-1 hover:opacity-80 text-sm no-underline">
+              <iconify-icon icon="mdi:open-in-new"></iconify-icon>
+              <span>Google Flights</span>
+            </a>
+            <a href="${getBookingUrl('kayak', destination, selectedHoliday.date, flight.airline)}" target="_blank" class="py-2 bg-energy-coral text-black rounded-lg font-semibold transition-smooth flex items-center justify-center space-x-1 hover:opacity-80 text-sm no-underline">
+              <iconify-icon icon="mdi:open-in-new"></iconify-icon>
+              <span>Kayak</span>
+            </a>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <a href="${getBookingUrl('southwest', destination, selectedHoliday.date, flight.airline)}" target="_blank" class="py-2 bg-yellow-500 text-black rounded-lg font-semibold transition-smooth flex items-center justify-center space-x-1 hover:opacity-80 text-sm no-underline">
+              <iconify-icon icon="mdi:open-in-new"></iconify-icon>
+              <span>Southwest</span>
+            </a>
+            <button onclick="saveTrip('${flight.airline}', ${flight.price}, '${selectedHoliday.name}')" class="py-2 bg-energy-purple hover:bg-energy-purple/80 rounded-lg font-semibold transition-smooth flex items-center justify-center space-x-1 text-sm">
+              <iconify-icon icon="mdi:heart-outline"></iconify-icon>
+              <span>Save</span>
+            </button>
+          </div>
         </div>
       `).join('');
 
@@ -1374,6 +1475,316 @@ Best strategy: [explanation]`;
       `).join('');
 
       document.getElementById('trendsResults').innerHTML = html;
+    }
+
+    // ==========================================
+    // REAL BOOKING LINKS - Opens airline/booking sites
+    // ==========================================
+    function getBookingUrl(site, destination, departDate, airline) {
+      // Map destination codes to full airport codes
+      const destMap = {
+        'NYC': 'JFK', 'CRC': 'SJO'
+      };
+      const destCode = destMap[destination] || destination;
+      const departure = 'DFW'; // Home airport
+
+      // Calculate return date (7 days after departure)
+      const depDate = new Date(departDate);
+      const retDate = new Date(depDate);
+      retDate.setDate(retDate.getDate() + 7);
+      const returnDate = retDate.toISOString().split('T')[0];
+
+      switch(site) {
+        case 'google':
+          return `https://www.google.com/travel/flights?q=Flights+from+${departure}+to+${destCode}+on+${departDate}+return+${returnDate}`;
+
+        case 'kayak':
+          return `https://www.kayak.com/flights/${departure}-${destCode}/${departDate}/${returnDate}?sort=bestflight_a`;
+
+        case 'southwest':
+          return `https://www.southwest.com/air/booking/select.html?originationAirportCode=${departure}&destinationAirportCode=${destCode}&departureDate=${departDate}&returnDate=${returnDate}&adultPassengersCount=1&tripType=roundtrip`;
+
+        default:
+          return `https://www.google.com/travel/flights?q=Flights+from+${departure}+to+${destCode}`;
+      }
+    }
+
+    // Helper: build booking URL with specific dates
+    function getBookingUrlWithDates(site, departure, destination, departDate, returnDate) {
+      const destMap = { 'NYC': 'JFK', 'CRC': 'SJO' };
+      const destCode = destMap[destination] || destination;
+      const depCode = departure || 'DFW';
+
+      switch(site) {
+        case 'google':
+          return `https://www.google.com/travel/flights?q=Flights+from+${depCode}+to+${destCode}+on+${departDate}+return+${returnDate}`;
+
+        case 'kayak':
+          return `https://www.kayak.com/flights/${depCode}-${destCode}/${departDate}/${returnDate}?sort=bestflight_a`;
+
+        case 'southwest':
+          return `https://www.southwest.com/air/booking/select.html?originationAirportCode=${depCode}&destinationAirportCode=${destCode}&departureDate=${departDate}&returnDate=${returnDate}&adultPassengersCount=1&tripType=roundtrip`;
+
+        default:
+          return `https://www.google.com/travel/flights?q=Flights+from+${depCode}+to+${destCode}`;
+      }
+    }
+
+    // ==========================================
+    // PTO OPTIMIZER - Full Implementation
+    // ==========================================
+    function runPTOOptimizer() {
+      const holidayVal = document.getElementById('ptoHoliday').value;
+      const departure = document.getElementById('ptoDeparture').value;
+      const destination = document.getElementById('ptoDestination').value;
+      const maxPTO = parseInt(document.getElementById('ptoMaxDays').value);
+      const resultsDiv = document.getElementById('ptoResults');
+
+      if (!holidayVal || !destination) {
+        resultsDiv.innerHTML = '<div class="text-center py-8 text-energy-coral">Please select a holiday and destination</div>';
+        return;
+      }
+
+      const [holidayDate, holidayName] = holidayVal.split('|');
+
+      // Show loading
+      resultsDiv.innerHTML = `
+        <div class="text-center py-12">
+          <div class="animate-spin inline-block mb-4">
+            <iconify-icon icon="mdi:loading" width="48" class="text-energy-teal"></iconify-icon>
+          </div>
+          <p class="text-gray-400">Generating ${maxPTO * 6}+ date combinations around ${holidayName}...</p>
+        </div>
+      `;
+
+      // Small delay so loading shows
+      setTimeout(() => {
+        // Generate all valid date combinations
+        const combinations = generatePTOCombinations(holidayDate, maxPTO);
+
+        if (combinations.length === 0) {
+          resultsDiv.innerHTML = '<div class="text-center py-8 text-gray-400">No valid combinations found. Try increasing max PTO days.</div>';
+          return;
+        }
+
+        // Get simulated prices based on real flight data patterns
+        const results = combinations.map(combo => {
+          const price = estimateFlightPrice(departure, destination, combo.departDate, combo.returnDate);
+          return { ...combo, price };
+        });
+
+        // Calculate scores
+        const maxPrice = Math.max(...results.map(r => r.price));
+        const scoredResults = results.map(r => {
+          const priceScore = (r.price / maxPrice) * 100;
+          const ptoScore = (r.ptoDays / maxPTO) * 100;
+          const score = Math.round((priceScore + ptoScore) / 2);
+          return { ...r, score };
+        });
+
+        // Sort by score (lowest = best)
+        scoredResults.sort((a, b) => a.score - b.score);
+
+        // Display results
+        displayPTOResults(scoredResults, departure, destination, holidayName);
+      }, 800);
+    }
+
+    function generatePTOCombinations(holidayDate, maxPTO) {
+      const combinations = [];
+      const holiday = new Date(holidayDate + 'T12:00:00');
+
+      // ±5 days around holiday
+      for (let depOffset = -5; depOffset <= 0; depOffset++) {
+        for (let retOffset = 0; retOffset <= 5; retOffset++) {
+          const departDate = new Date(holiday);
+          departDate.setDate(departDate.getDate() + depOffset);
+
+          const returnDate = new Date(holiday);
+          returnDate.setDate(returnDate.getDate() + retOffset);
+
+          // Return must be after departure
+          if (returnDate <= departDate) continue;
+
+          // Calculate calendar days
+          const diffTime = Math.abs(returnDate - departDate);
+          const calendarDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          // Only include if within max PTO
+          if (calendarDays > maxPTO) continue;
+
+          // Format dates
+          const depStr = departDate.toISOString().split('T')[0];
+          const retStr = returnDate.toISOString().split('T')[0];
+
+          // Get day names
+          const depDay = departDate.toLocaleDateString('en-US', { weekday: 'short' });
+          const retDay = returnDate.toLocaleDateString('en-US', { weekday: 'short' });
+
+          // Format for display
+          const depDisplay = departDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const retDisplay = returnDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+          combinations.push({
+            departDate: depStr,
+            returnDate: retStr,
+            departDisplay: `${depDay}, ${depDisplay}`,
+            returnDisplay: `${retDay}, ${retDisplay}`,
+            ptoDays: calendarDays
+          });
+        }
+      }
+
+      return combinations;
+    }
+
+    function estimateFlightPrice(departure, destination, departDate, returnDate) {
+      // Base prices by route (realistic averages from DFW)
+      const basePrices = {
+        'MIA': 220, 'CUN': 280, 'LAX': 195, 'LAS': 160,
+        'NYC': 185, 'JFK': 185, 'ORD': 145, 'DEN': 140,
+        'SFO': 210, 'SEA': 230, 'HNL': 420, 'SJU': 310,
+        'CDG': 580, 'LHR': 540, 'CRC': 350, 'SJO': 350,
+        'BOS': 195, 'IAH': 95, 'AUS': 85, 'SAT': 80
+      };
+
+      const basePrice = basePrices[destination] || 250;
+
+      // Day of week pricing (Tue/Wed cheapest, Fri/Sun most expensive)
+      const depDate = new Date(departDate);
+      const retDate = new Date(returnDate);
+      const depDay = depDate.getDay(); // 0=Sun, 1=Mon... 6=Sat
+      const retDay = retDate.getDay();
+
+      const dayMultiplier = {
+        0: 1.15, // Sunday - expensive
+        1: 0.95, // Monday - cheaper
+        2: 0.85, // Tuesday - cheapest
+        3: 0.88, // Wednesday - cheap
+        4: 0.95, // Thursday - moderate
+        5: 1.20, // Friday - most expensive
+        6: 1.10  // Saturday - expensive
+      };
+
+      const depMultiplier = dayMultiplier[depDay] || 1.0;
+      const retMultiplier = dayMultiplier[retDay] || 1.0;
+
+      // Advance booking discount (further out = cheaper)
+      const today = new Date();
+      const daysOut = Math.ceil((depDate - today) / (1000 * 60 * 60 * 24));
+      let advanceMultiplier = 1.0;
+      if (daysOut > 90) advanceMultiplier = 0.85;
+      else if (daysOut > 60) advanceMultiplier = 0.90;
+      else if (daysOut > 30) advanceMultiplier = 0.95;
+      else if (daysOut > 14) advanceMultiplier = 1.05;
+      else advanceMultiplier = 1.25; // Last minute = expensive
+
+      // Holiday premium (closer to holiday = more expensive)
+      const holidayPremium = 1.15;
+
+      // Small random variation (±8%)
+      const randomVar = 0.92 + (Math.random() * 0.16);
+
+      // Calculate final price
+      const outbound = Math.round(basePrice * depMultiplier * advanceMultiplier * holidayPremium * randomVar);
+      const returnFlight = Math.round(basePrice * retMultiplier * advanceMultiplier * holidayPremium * randomVar);
+      const totalPrice = outbound + returnFlight;
+
+      return totalPrice;
+    }
+
+    function displayPTOResults(results, departure, destination, holidayName) {
+      const resultsDiv = document.getElementById('ptoResults');
+
+      // Summary stats
+      const bestScore = results[0];
+      const cheapest = [...results].sort((a, b) => a.price - b.price)[0];
+      const fewestDays = [...results].sort((a, b) => a.ptoDays - b.ptoDays)[0];
+
+      let html = `
+        <!-- Summary Cards -->
+        <div class="grid md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-green-900/30 border border-green-700/50 rounded-xl p-4 text-center">
+            <p class="text-sm text-green-400 mb-1">🏆 Best Overall</p>
+            <p class="text-xl font-bold text-white">${bestScore.departDisplay} → ${bestScore.returnDisplay}</p>
+            <p class="text-sm text-gray-400">$${bestScore.price} · ${bestScore.ptoDays} PTO days · Score: ${bestScore.score}</p>
+          </div>
+          <div class="bg-blue-900/30 border border-blue-700/50 rounded-xl p-4 text-center">
+            <p class="text-sm text-blue-400 mb-1">💰 Cheapest Flight</p>
+            <p class="text-xl font-bold text-white">${cheapest.departDisplay} → ${cheapest.returnDisplay}</p>
+            <p class="text-sm text-gray-400">$${cheapest.price} · ${cheapest.ptoDays} PTO days</p>
+          </div>
+          <div class="bg-purple-900/30 border border-purple-700/50 rounded-xl p-4 text-center">
+            <p class="text-sm text-purple-400 mb-1">⏰ Fewest PTO Days</p>
+            <p class="text-xl font-bold text-white">${fewestDays.departDisplay} → ${fewestDays.returnDisplay}</p>
+            <p class="text-sm text-gray-400">$${fewestDays.price} · ${fewestDays.ptoDays} PTO days</p>
+          </div>
+        </div>
+
+        <!-- Info banner -->
+        <div class="bg-energy-teal/10 border border-energy-teal/30 rounded-lg p-3 mb-4 text-sm text-gray-300">
+          💡 <strong>Prices are estimates</strong> based on route averages and day-of-week patterns. Click <strong>"Google Flights"</strong>, <strong>"Kayak"</strong>, or <strong>"Southwest"</strong> to see real live prices and book directly!
+        </div>
+
+        <!-- Results Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-700">
+                <th class="text-left py-3 px-3 font-semibold text-energy-purple">Depart</th>
+                <th class="text-left py-3 px-3 font-semibold text-energy-purple">Return</th>
+                <th class="text-left py-3 px-3 font-semibold text-energy-purple">PTO Days</th>
+                <th class="text-left py-3 px-3 font-semibold text-energy-purple">Est. Price</th>
+                <th class="text-left py-3 px-3 font-semibold text-energy-purple">Score</th>
+                <th class="text-center py-3 px-3 font-semibold text-energy-purple">Book Now (Real Prices)</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      results.forEach((r, index) => {
+        const scoreColor = r.score < 40 ? 'text-green-400' : r.score < 60 ? 'text-blue-400' : r.score < 80 ? 'text-yellow-400' : 'text-red-400';
+        const scoreBg = r.score < 40 ? 'bg-green-900/30' : r.score < 60 ? 'bg-blue-900/30' : r.score < 80 ? 'bg-yellow-900/30' : 'bg-red-900/30';
+        const bestBadge = index === 0 ? '<span class="ml-2 px-2 py-0.5 bg-yellow-500 text-black text-xs font-bold rounded">🏆 BEST</span>' : '';
+
+        const googleUrl = getBookingUrlWithDates('google', departure, destination, r.departDate, r.returnDate);
+        const kayakUrl = getBookingUrlWithDates('kayak', departure, destination, r.departDate, r.returnDate);
+        const southwestUrl = getBookingUrlWithDates('southwest', departure, destination, r.departDate, r.returnDate);
+
+        html += `
+              <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-all">
+                <td class="py-3 px-3 font-medium text-white">${r.departDisplay}</td>
+                <td class="py-3 px-3 font-medium text-white">${r.returnDisplay}</td>
+                <td class="py-3 px-3">
+                  <span class="px-2 py-1 bg-energy-purple/20 text-energy-purple rounded font-semibold">${r.ptoDays} days</span>
+                </td>
+                <td class="py-3 px-3 text-energy-teal font-bold">$${r.price}</td>
+                <td class="py-3 px-3">
+                  <span class="px-2 py-1 ${scoreBg} ${scoreColor} rounded font-bold">${r.score}</span>
+                  ${bestBadge}
+                </td>
+                <td class="py-3 px-3">
+                  <div class="flex space-x-2 justify-center">
+                    <a href="${googleUrl}" target="_blank" class="px-3 py-1.5 bg-energy-teal text-black rounded font-semibold text-xs hover:opacity-80 no-underline whitespace-nowrap">Google Flights</a>
+                    <a href="${kayakUrl}" target="_blank" class="px-3 py-1.5 bg-energy-coral text-black rounded font-semibold text-xs hover:opacity-80 no-underline whitespace-nowrap">Kayak</a>
+                    <a href="${southwestUrl}" target="_blank" class="px-3 py-1.5 bg-yellow-500 text-black rounded font-semibold text-xs hover:opacity-80 no-underline whitespace-nowrap">Southwest</a>
+                  </div>
+                </td>
+              </tr>
+        `;
+      });
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-4 text-center text-gray-500 text-xs">
+          Showing ${results.length} combinations for ${holidayName} · ${departure} → ${destination} · Max ${results[0] ? Math.max(...results.map(r => r.ptoDays)) : 0} PTO days
+        </div>
+      `;
+
+      resultsDiv.innerHTML = html;
     }
   </script>
 </body>
