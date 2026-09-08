@@ -262,6 +262,7 @@
           <button onclick="switchTab('trends')" class="tab-underline transition-smooth hover:text-energy-purple">Trends</button>
           <button onclick="switchTab('vacation')" class="tab-underline transition-smooth hover:text-energy-purple">📅 Days Off</button>
           <button onclick="switchTab('saved')" class="tab-underline transition-smooth hover:text-energy-purple">Saved</button>
+          <button onclick="switchTab('settings')" class="tab-underline transition-smooth hover:text-energy-purple">⚙️ Settings</button>
         </div>
       </div>
     </nav>
@@ -630,14 +631,14 @@
           <div class="bg-gray-800/50 rounded-xl border border-gray-700 p-4 mb-8">
             <div class="flex justify-between items-center mb-2">
               <span class="text-sm font-semibold text-gray-300">Your PTO Budget</span>
-              <span class="text-sm text-gray-400">15 days remaining · Use by May 26, 2027</span>
+              <span class="text-sm text-gray-400"><span data-pto-remaining>15</span> days remaining · Use by <span data-pto-deadline-short>May 2027</span></span>
             </div>
             <div class="h-3 bg-gray-700 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-energy-purple to-energy-teal rounded-full" style="width: 13%"></div>
+              <div data-pto-bar class="h-full bg-gradient-to-r from-energy-purple to-energy-teal rounded-full" style="width: 13%"></div>
             </div>
             <div class="flex justify-between mt-1 text-xs text-gray-500">
-              <span>2 used</span>
-              <span>15 left of 17</span>
+              <span><span data-pto-used>2</span> used</span>
+              <span><span data-pto-remaining>15</span> left of <span data-pto-total>17</span></span>
             </div>
           </div>
 
@@ -660,16 +661,16 @@
           <div class="bg-gray-800/50 rounded-xl border border-gray-700 p-6 mb-8">
             <div class="grid md:grid-cols-3 gap-6">
               <div>
-                <p class="text-gray-400 text-sm mb-2">Vacation Days Used (2026)</p>
-                <p class="text-4xl font-bold text-energy-coral">2</p>
+                <p class="text-gray-400 text-sm mb-2">Vacation Days Used</p>
+                <p class="text-4xl font-bold text-energy-coral" data-pto-used>2</p>
               </div>
               <div>
                 <p class="text-gray-400 text-sm mb-2">Vacation Days Remaining</p>
-                <p class="text-4xl font-bold text-energy-teal">15</p>
+                <p class="text-4xl font-bold text-energy-teal" data-pto-remaining>15</p>
               </div>
               <div>
                 <p class="text-gray-400 text-sm mb-2">Must Use By</p>
-                <p class="text-2xl font-bold text-white">May 26, 2027</p>
+                <p class="text-2xl font-bold text-white" data-pto-deadline>May 26, 2027</p>
               </div>
             </div>
           </div>
@@ -715,9 +716,9 @@
           <div class="space-y-4">
             <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
               <h3 class="text-sm font-semibold text-gray-400 mb-3">PTO Balance</h3>
-              <div class="text-4xl font-bold text-energy-teal mb-1">15 <span class="text-lg text-gray-500">days</span></div>
-              <div class="h-2 bg-gray-700 rounded-full mt-2 mb-2"><div class="h-full bg-energy-teal rounded-full" style="width:88%"></div></div>
-              <p class="text-xs text-gray-500">2 used · 15 remaining · Use by May 2027</p>
+              <div class="text-4xl font-bold text-energy-teal mb-1"><span data-pto-remaining>15</span> <span class="text-lg text-gray-500">days</span></div>
+              <div class="h-2 bg-gray-700 rounded-full mt-2 mb-2"><div data-pto-bar class="h-full bg-energy-teal rounded-full" style="width:88%"></div></div>
+              <p class="text-xs text-gray-500"><span data-pto-used>2</span> used · <span data-pto-remaining>15</span> remaining · Use by <span data-pto-deadline-short>May 2027</span></p>
             </div>
             <div class="bg-gradient-to-br from-energy-purple/20 to-energy-teal/10 rounded-xl border border-energy-purple/30 p-5">
               <h3 class="text-sm font-semibold text-energy-purple mb-2">🔥 Best Opportunity</h3>
@@ -794,6 +795,91 @@
           </div>
         </div>
       </div>
+
+      <!-- SETTINGS TAB -->
+      <div id="settings-tab" class="tab-content hidden">
+        <div class="max-w-2xl mx-auto">
+          <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
+            <h2 class="font-display text-3xl font-bold mb-2">⚙️ Your Settings</h2>
+            <p class="text-gray-400 mb-8">Personalize SkyPulse so everything is tailored to you</p>
+
+            <!-- Name -->
+            <div class="mb-6">
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Your Name</label>
+              <input type="text" id="settingsName" placeholder="Enter your name" 
+                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-energy-purple focus:outline-none">
+              <p class="text-xs text-gray-500 mt-1">Used for greetings — totally optional</p>
+            </div>
+
+            <!-- Home Airport -->
+            <div class="mb-6">
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Home Airport</label>
+              <select id="settingsAirport" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-energy-purple focus:outline-none">
+                <option value="DFW">Dallas/Fort Worth (DFW)</option>
+                <option value="IAH">Houston (IAH)</option>
+                <option value="AUS">Austin (AUS)</option>
+                <option value="SAT">San Antonio (SAT)</option>
+                <option value="LAX">Los Angeles (LAX)</option>
+                <option value="JFK">New York JFK (JFK)</option>
+                <option value="ORD">Chicago O'Hare (ORD)</option>
+                <option value="ATL">Atlanta (ATL)</option>
+                <option value="DEN">Denver (DEN)</option>
+                <option value="SFO">San Francisco (SFO)</option>
+                <option value="SEA">Seattle (SEA)</option>
+                <option value="MIA">Miami (MIA)</option>
+                <option value="BOS">Boston (BOS)</option>
+                <option value="LAS">Las Vegas (LAS)</option>
+                <option value="PHX">Phoenix (PHX)</option>
+                <option value="MSP">Minneapolis (MSP)</option>
+                <option value="DTW">Detroit (DTW)</option>
+                <option value="CLT">Charlotte (CLT)</option>
+              </select>
+              <p class="text-xs text-gray-500 mt-1">Where you fly out of — used for flight searches and price estimates</p>
+            </div>
+
+            <!-- PTO Section -->
+            <div class="bg-gray-800/50 rounded-xl border border-gray-700 p-6 mb-6">
+              <h3 class="font-bold text-white mb-4">📅 PTO / Vacation Days</h3>
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-semibold mb-2 text-gray-300">Total PTO Days Per Year</label>
+                  <input type="number" id="settingsTotalPTO" min="0" max="50" value="17" 
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-energy-purple focus:outline-none">
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold mb-2 text-gray-300">Days Already Used</label>
+                  <input type="number" id="settingsUsedPTO" min="0" max="50" value="2" 
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-energy-purple focus:outline-none">
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold mb-2 text-gray-300">Must Use By (Deadline)</label>
+                <input type="date" id="settingsDeadline" value="2027-05-26" 
+                  class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-energy-purple focus:outline-none">
+                <p class="text-xs text-gray-500 mt-1">When your PTO days expire or reset</p>
+              </div>
+            </div>
+
+            <!-- Preview -->
+            <div id="settingsPreview" class="bg-gradient-to-r from-energy-purple/10 to-energy-teal/10 rounded-xl border border-energy-purple/30 p-5 mb-6">
+              <h3 class="text-sm font-semibold text-energy-purple mb-2">Preview</h3>
+              <p class="text-white text-lg font-bold" id="previewText">Loading...</p>
+            </div>
+
+            <!-- Save / Reset -->
+            <div class="flex gap-4">
+              <button onclick="saveSettings()" class="flex-1 py-3 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-bold text-lg hover:shadow-lg hover:shadow-energy-purple/20 transition-smooth hover:scale-[1.02]">
+                💾 Save Settings
+              </button>
+              <button onclick="resetSettings()" class="px-6 py-3 bg-gray-800 border border-gray-700 rounded-lg font-semibold text-gray-400 hover:text-energy-coral hover:border-energy-coral transition-smooth">
+                Reset
+              </button>
+            </div>
+
+            <p id="settingsSaved" class="text-center text-energy-teal text-sm mt-4 hidden">✅ Settings saved! All tabs now use your personal info.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- AI Recommendation Section -->
@@ -828,6 +914,98 @@
     let selectedHoliday = null;
     let allHolidays = {};
     let savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || [];
+
+    // ==========================================
+    // USER SETTINGS - Personalization
+    // ==========================================
+    const DEFAULT_SETTINGS = { name: '', airport: 'DFW', totalPTO: 17, usedPTO: 2, deadline: '2027-05-26' };
+
+    function getUserSettings() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('skypulseSettings'));
+        return { ...DEFAULT_SETTINGS, ...saved };
+      } catch { return { ...DEFAULT_SETTINGS }; }
+    }
+
+    function saveSettings() {
+      const s = {
+        name: document.getElementById('settingsName').value.trim(),
+        airport: document.getElementById('settingsAirport').value,
+        totalPTO: parseInt(document.getElementById('settingsTotalPTO').value) || 17,
+        usedPTO: parseInt(document.getElementById('settingsUsedPTO').value) || 0,
+        deadline: document.getElementById('settingsDeadline').value || '2027-05-26'
+      };
+      localStorage.setItem('skypulseSettings', JSON.stringify(s));
+      document.getElementById('settingsSaved').classList.remove('hidden');
+      setTimeout(() => document.getElementById('settingsSaved').classList.add('hidden'), 3000);
+      applySettingsToUI();
+      updateSettingsPreview();
+    }
+
+    function resetSettings() {
+      localStorage.removeItem('skypulseSettings');
+      loadSettingsIntoForm();
+      applySettingsToUI();
+    }
+
+    function loadSettingsIntoForm() {
+      const s = getUserSettings();
+      const nameEl = document.getElementById('settingsName');
+      const airportEl = document.getElementById('settingsAirport');
+      const totalEl = document.getElementById('settingsTotalPTO');
+      const usedEl = document.getElementById('settingsUsedPTO');
+      const deadlineEl = document.getElementById('settingsDeadline');
+      if (nameEl) nameEl.value = s.name;
+      if (airportEl) airportEl.value = s.airport;
+      if (totalEl) totalEl.value = s.totalPTO;
+      if (usedEl) usedEl.value = s.usedPTO;
+      if (deadlineEl) deadlineEl.value = s.deadline;
+      updateSettingsPreview();
+    }
+
+    function updateSettingsPreview() {
+      const s = getUserSettings();
+      // Read from form if available (live preview)
+      const name = (document.getElementById('settingsName')?.value || s.name).trim();
+      const airport = document.getElementById('settingsAirport')?.value || s.airport;
+      const total = parseInt(document.getElementById('settingsTotalPTO')?.value) || s.totalPTO;
+      const used = parseInt(document.getElementById('settingsUsedPTO')?.value) || s.usedPTO;
+      const remaining = total - used;
+      const deadline = document.getElementById('settingsDeadline')?.value || s.deadline;
+      const deadlineDisplay = new Date(deadline + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+      const el = document.getElementById('previewText');
+      if (el) el.innerHTML = `${name ? name + ' · ' : ''}Flying from <strong class="text-energy-teal">${airport}</strong> · <strong class="text-energy-purple">${remaining}</strong> PTO days left · Deadline: ${deadlineDisplay}`;
+    }
+
+    function applySettingsToUI() {
+      const s = getUserSettings();
+      const remaining = s.totalPTO - s.usedPTO;
+      const deadlineDisplay = new Date(s.deadline + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const deadlineFull = new Date(s.deadline + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+      // Update all hardcoded PTO displays
+      document.querySelectorAll('[data-pto-remaining]').forEach(el => el.textContent = remaining);
+      document.querySelectorAll('[data-pto-used]').forEach(el => el.textContent = s.usedPTO);
+      document.querySelectorAll('[data-pto-total]').forEach(el => el.textContent = s.totalPTO);
+      document.querySelectorAll('[data-pto-deadline]').forEach(el => el.textContent = deadlineFull);
+      document.querySelectorAll('[data-pto-deadline-short]').forEach(el => el.textContent = deadlineDisplay);
+      document.querySelectorAll('[data-home-airport]').forEach(el => el.textContent = s.airport);
+
+      // Update airport dropdowns default values
+      document.querySelectorAll('#fromAirport, #compareFromAirport, #trendFromAirport').forEach(el => { if (el) el.value = s.airport; });
+
+      // Update PTO budget bar width
+      const ptoBar = document.querySelector('[data-pto-bar]');
+      if (ptoBar) ptoBar.style.width = Math.round((s.usedPTO / s.totalPTO) * 100) + '%';
+    }
+
+    // Live preview when form changes
+    document.addEventListener('input', function(e) {
+      if (['settingsName','settingsAirport','settingsTotalPTO','settingsUsedPTO','settingsDeadline'].includes(e.target.id)) {
+        updateSettingsPreview();
+      }
+    });
 
     // MOCK DATA - NO API NEEDED!
     const mockHolidays = {
@@ -1594,7 +1772,7 @@ Best strategy: [explanation]`;
         'NYC': 'JFK', 'CRC': 'SJO'
       };
       const destCode = destMap[destination] || destination;
-      const departure = 'DFW'; // Home airport
+      const departure = getUserSettings().airport; // Home airport
 
       // Calculate return date (7 days after departure)
       const depDate = new Date(departDate);
@@ -1824,7 +2002,7 @@ Best strategy: [explanation]`;
 
       let html = `
         <h3 class="font-bold text-xl text-white mb-1">Best Vacation Windows Found</h3>
-        <p class="text-gray-500 text-sm mb-6">Ranked by value: most days off per PTO day spent. DFW → ${destination}</p>
+        <p class="text-gray-500 text-sm mb-6">Ranked by value: most days off per PTO day spent. ${getUserSettings().airport} → ${destination}</p>
       `;
 
       results.forEach((r, i) => {
@@ -1833,9 +2011,10 @@ Best strategy: [explanation]`;
         const ringColor = rank <= 3 ? ['border-yellow-500','border-gray-400','border-amber-700'][rank-1] : 'border-gray-700';
         const valueColor = r.valueScore >= 4 ? 'text-green-400 bg-green-900/30' : r.valueScore >= 2.5 ? 'text-blue-400 bg-blue-900/30' : r.valueScore >= 1.5 ? 'text-yellow-400 bg-yellow-900/30' : 'text-red-400 bg-red-900/30';
 
-        const googleUrl = getBookingUrlWithDates('google', 'DFW', destination, r.startDate, r.endDate);
-        const kayakUrl = getBookingUrlWithDates('kayak', 'DFW', destination, r.startDate, r.endDate);
-        const swUrl = getBookingUrlWithDates('southwest', 'DFW', destination, r.startDate, r.endDate);
+        const homeAirport = getUserSettings().airport;
+        const googleUrl = getBookingUrlWithDates('google', homeAirport, destination, r.startDate, r.endDate);
+        const kayakUrl = getBookingUrlWithDates('kayak', homeAirport, destination, r.startDate, r.endDate);
+        const swUrl = getBookingUrlWithDates('southwest', homeAirport, destination, r.startDate, r.endDate);
         const swUnsupported = ['CDG', 'LHR', 'CRC', 'SJO', 'HNL'];
         const destMap = { 'NYC': 'JFK', 'CRC': 'SJO' };
         const destCode = destMap[destination] || destination;
@@ -1940,13 +2119,17 @@ Best strategy: [explanation]`;
       const msgs = document.getElementById('aiChatMessages');
       if (!msgs) return;
 
-      addAIMessage('bot', `Hey! 👋 I'm your AI travel assistant. I know your PTO situation — <strong>15 days remaining</strong>, deadline May 2027, flying out of <strong>DFW</strong>.
+      const s = getUserSettings();
+      const remaining = s.totalPTO - s.usedPTO;
+      const deadlineDisplay = new Date(s.deadline + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+      addAIMessage('bot', `Hey${s.name ? ' ' + s.name : ''}! 👋 I'm your AI travel assistant. I know your PTO situation — <strong>${remaining} days remaining</strong>, deadline ${deadlineDisplay}, flying out of <strong>${s.airport}</strong>.
 
 Tell me what you're looking for and I'll find the best trips that maximize your time off. You can say things like:
 
-• "I want a beach vacation under $300"
+• "Warm beach trip under $700 with 3 PTO days"
 • "What's the best way to use my PTO around Thanksgiving?"
-• "Weekend getaway somewhere warm"
+• "Weekend getaway somewhere cheap"
 • "Surprise me!"
 
 Or click any quick filter on the left. What sounds good?`);
@@ -2003,6 +2186,9 @@ Or click any quick filter on the left. What sounds good?`);
 
     function processAIQuery(query) {
       const q = query.toLowerCase();
+      const s = getUserSettings();
+      const homeAirport = s.airport;
+      const remainingPTO = s.totalPTO - s.usedPTO;
       let filtered = [...destinations];
       let explanation = '';
       let requestedPTO = null;
@@ -2096,7 +2282,7 @@ Or click any quick filter on the left. What sounds good?`);
 
       // Build chat response with "why this trip" 
       let response = explanation ? `<p class="mb-3 text-gray-300">${explanation}</p>` : '';
-      response += `<p class="mb-4 text-gray-300">Here are my top picks from <strong>DFW</strong> (${nights} nights):</p>`;
+      response += `<p class="mb-4 text-gray-300">Here are my top picks from <strong>${homeAirport}</strong> (${nights} nights):</p>`;
 
       top.forEach((d, i) => {
         const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
@@ -2127,12 +2313,13 @@ Or click any quick filter on the left. What sounds good?`);
     function showDestCards(dests) {
       const container = document.getElementById('aiDestCards');
       const grid = document.getElementById('aiDestGrid');
+      const homeAirport = getUserSettings().airport;
       container.classList.remove('hidden');
       lastAIResults = dests.length > 3 ? dests : lastAIResults;
 
       grid.innerHTML = dests.map((d, i) => {
-        const googleUrl = getBookingUrlWithDates('google', 'DFW', d.code, '', '');
-        const kayakUrl = `https://www.kayak.com/explore/DFW/?budget=&duration=&flightType=round&sort=rank`;
+        const googleUrl = getBookingUrlWithDates('google', homeAirport, d.code, '', '');
+        const kayakUrl = `https://www.kayak.com/explore/${homeAirport}/?budget=&duration=&flightType=round&sort=rank`;
         const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
         return `
           <div class="bg-gray-900 rounded-xl border border-gray-800 p-4 hover:border-energy-purple/50 transition-all flex flex-col" data-code="${d.code}" data-cost="${d.tripTotal}" data-days="${d.totalDaysOff}">
@@ -2140,7 +2327,7 @@ Or click any quick filter on the left. What sounds good?`);
             <div class="flex justify-between items-start mb-2">
               <div>
                 <h4 class="font-bold text-white">${rank} ${d.emoji} ${d.name}</h4>
-                <p class="text-gray-500 text-xs">${d.code} · ${d.flightHrs}h from DFW</p>
+                <p class="text-gray-500 text-xs">${d.code} · ${d.flightHrs}h from ${homeAirport}</p>
               </div>
               <div class="text-right">
                 <div class="text-energy-teal font-bold text-lg">$${d.tripTotal}</div>
@@ -2334,7 +2521,15 @@ Or click any quick filter on the left. What sounds good?`);
         aiInitialized = true;
         setTimeout(initAIChat, 200);
       }
+      if (tabName === 'settings') {
+        loadSettingsIntoForm();
+      }
     };
+
+    // Initialize settings on page load
+    setTimeout(() => {
+      applySettingsToUI();
+    }, 300);
   </script>
 </body>
 </html>
