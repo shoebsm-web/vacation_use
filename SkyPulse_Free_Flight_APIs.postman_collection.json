@@ -1,0 +1,326 @@
+{
+  "info": {
+    "name": "SkyPulse - Free Flight APIs",
+    "description": "All free flight APIs for the SkyPulse vacation planner. No credit card required for any of these.\n\n## APIs Included:\n1. **Aviationstack** (100 req/mo) - Flight schedules & status\n2. **AeroDataBox** (600 units/mo) - Flight status, airports, aircraft\n3. **OpenSky Network** (Unlimited) - Live aircraft tracking\n4. **SearchAPI.io Google Flights** (100 req/mo) - REAL flight prices\n\n## Setup:\n1. Sign up for each service (free, no credit card)\n2. Get your API keys\n3. Add them to the Collection Variables tab\n4. Start making requests!",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "skypulse"
+  },
+  "variable": [
+    {
+      "key": "AVIATIONSTACK_KEY",
+      "value": "YOUR_KEY_HERE",
+      "type": "string"
+    },
+    {
+      "key": "RAPIDAPI_KEY",
+      "value": "YOUR_KEY_HERE",
+      "type": "string"
+    },
+    {
+      "key": "SEARCHAPI_KEY",
+      "value": "YOUR_KEY_HERE",
+      "type": "string"
+    },
+    {
+      "key": "HOME_AIRPORT",
+      "value": "DFW",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Aviationstack (Schedules & Status)",
+      "description": "FREE: 100 requests/month, no credit card\nSign up: https://aviationstack.com/\nGives you: Flight schedules, status, airlines, airports\nDoes NOT give: Ticket prices",
+      "item": [
+        {
+          "name": "Get Live Flights by Route",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://api.aviationstack.com/v1/flights?access_key={{AVIATIONSTACK_KEY}}&dep_iata={{HOME_AIRPORT}}&arr_iata=MIA&limit=10",
+              "protocol": "http",
+              "host": ["api", "aviationstack", "com"],
+              "path": ["v1", "flights"],
+              "query": [
+                { "key": "access_key", "value": "{{AVIATIONSTACK_KEY}}" },
+                { "key": "dep_iata", "value": "{{HOME_AIRPORT}}", "description": "Departure airport (your home airport)" },
+                { "key": "arr_iata", "value": "MIA", "description": "Arrival airport" },
+                { "key": "limit", "value": "10", "description": "Max results" }
+              ]
+            },
+            "description": "Get flights from your home airport to a destination.\n\nChange arr_iata to any airport code: MIA, LAX, JFK, ORD, CUN, etc."
+          }
+        },
+        {
+          "name": "Get Flight by Number",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://api.aviationstack.com/v1/flights?access_key={{AVIATIONSTACK_KEY}}&flight_iata=AA100",
+              "protocol": "http",
+              "host": ["api", "aviationstack", "com"],
+              "path": ["v1", "flights"],
+              "query": [
+                { "key": "access_key", "value": "{{AVIATIONSTACK_KEY}}" },
+                { "key": "flight_iata", "value": "AA100", "description": "Flight number (airline code + number)" }
+              ]
+            },
+            "description": "Look up a specific flight by flight number.\n\nExamples: AA100, UA1234, WN567, DL890"
+          }
+        },
+        {
+          "name": "Get Airport Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://api.aviationstack.com/v1/airports?access_key={{AVIATIONSTACK_KEY}}&iata_code=DFW",
+              "protocol": "http",
+              "host": ["api", "aviationstack", "com"],
+              "path": ["v1", "airports"],
+              "query": [
+                { "key": "access_key", "value": "{{AVIATIONSTACK_KEY}}" },
+                { "key": "iata_code", "value": "DFW", "description": "Airport IATA code" }
+              ]
+            },
+            "description": "Get detailed information about an airport."
+          }
+        },
+        {
+          "name": "Get Airline Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://api.aviationstack.com/v1/airlines?access_key={{AVIATIONSTACK_KEY}}&iata_code=AA",
+              "protocol": "http",
+              "host": ["api", "aviationstack", "com"],
+              "path": ["v1", "airlines"],
+              "query": [
+                { "key": "access_key", "value": "{{AVIATIONSTACK_KEY}}" },
+                { "key": "iata_code", "value": "AA", "description": "Airline IATA code (AA=American, UA=United, WN=Southwest, DL=Delta)" }
+              ]
+            },
+            "description": "Get airline details by IATA code."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. AeroDataBox via RapidAPI (Schedules & Aircraft)",
+      "description": "FREE: 600 API units/month, no credit card\nSign up: https://rapidapi.com/aedbx-aedbx/api/aerodatabox\nGives you: Flight status, schedules, airport data, aircraft info\nDoes NOT give: Ticket prices",
+      "item": [
+        {
+          "name": "Get Flight Status by Number",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-rapidapi-host", "value": "aerodatabox.p.rapidapi.com" },
+              { "key": "x-rapidapi-key", "value": "{{RAPIDAPI_KEY}}" }
+            ],
+            "url": {
+              "raw": "https://aerodatabox.p.rapidapi.com/flights/number/AA100/2026-11-26",
+              "protocol": "https",
+              "host": ["aerodatabox", "p", "rapidapi", "com"],
+              "path": ["flights", "number", "AA100", "2026-11-26"]
+            },
+            "description": "Get flight status for a specific flight on a specific date.\n\nFormat: /flights/number/{flightNumber}/{date}\n\nCosts 1 API unit."
+          }
+        },
+        {
+          "name": "Get Airport Departures",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-rapidapi-host", "value": "aerodatabox.p.rapidapi.com" },
+              { "key": "x-rapidapi-key", "value": "{{RAPIDAPI_KEY}}" }
+            ],
+            "url": {
+              "raw": "https://aerodatabox.p.rapidapi.com/flights/airports/iata/DFW/2026-11-26T08:00/2026-11-26T20:00?direction=Departure",
+              "protocol": "https",
+              "host": ["aerodatabox", "p", "rapidapi", "com"],
+              "path": ["flights", "airports", "iata", "DFW", "2026-11-26T08:00", "2026-11-26T20:00"],
+              "query": [
+                { "key": "direction", "value": "Departure", "description": "Departure or Arrival" }
+              ]
+            },
+            "description": "Get all departures from an airport within a time range.\n\nCosts 2 API units."
+          }
+        },
+        {
+          "name": "Get Airport Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-rapidapi-host", "value": "aerodatabox.p.rapidapi.com" },
+              { "key": "x-rapidapi-key", "value": "{{RAPIDAPI_KEY}}" }
+            ],
+            "url": {
+              "raw": "https://aerodatabox.p.rapidapi.com/airports/iata/DFW",
+              "protocol": "https",
+              "host": ["aerodatabox", "p", "rapidapi", "com"],
+              "path": ["airports", "iata", "DFW"]
+            },
+            "description": "Get airport details including location, timezone, URLs.\n\nThis is a FREE TIER endpoint (0 units)."
+          }
+        },
+        {
+          "name": "Get Airport Distance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-rapidapi-host", "value": "aerodatabox.p.rapidapi.com" },
+              { "key": "x-rapidapi-key", "value": "{{RAPIDAPI_KEY}}" }
+            ],
+            "url": {
+              "raw": "https://aerodatabox.p.rapidapi.com/airports/iata/DFW/distance-time/iata/MIA",
+              "protocol": "https",
+              "host": ["aerodatabox", "p", "rapidapi", "com"],
+              "path": ["airports", "iata", "DFW", "distance-time", "iata", "MIA"]
+            },
+            "description": "Get distance and estimated flight time between two airports.\n\nThis is a FREE TIER endpoint (0 units)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. OpenSky Network (Live Aircraft Tracking)",
+      "description": "FREE: Unlimited requests (no login), 4000 credits/day with login\nSign up: https://opensky-network.org/ (optional)\nGives you: Real-time aircraft positions, altitude, speed, direction\nDoes NOT give: Flight prices, schedules, airline names\nNO API KEY NEEDED for basic access!",
+      "item": [
+        {
+          "name": "Get All Aircraft in the Air",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://opensky-network.org/api/states/all",
+              "protocol": "https",
+              "host": ["opensky-network", "org"],
+              "path": ["api", "states", "all"]
+            },
+            "description": "Get ALL aircraft currently in the air worldwide.\n\nNO API KEY NEEDED!\n\nReturns: icao24, callsign, country, latitude, longitude, altitude, velocity, heading, on_ground\n\nWarning: Large response (~10,000+ aircraft). Use bounding box for smaller area."
+          }
+        },
+        {
+          "name": "Get Aircraft Near DFW Airport",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://opensky-network.org/api/states/all?lamin=32.5&lomin=-97.5&lamax=33.0&lomax=-96.8",
+              "protocol": "https",
+              "host": ["opensky-network", "org"],
+              "path": ["api", "states", "all"],
+              "query": [
+                { "key": "lamin", "value": "32.5", "description": "Latitude min (south)" },
+                { "key": "lomin", "value": "-97.5", "description": "Longitude min (west)" },
+                { "key": "lamax", "value": "33.0", "description": "Latitude max (north)" },
+                { "key": "lomax", "value": "-96.8", "description": "Longitude max (east)" }
+              ]
+            },
+            "description": "Get aircraft currently near DFW Airport using a geographic bounding box.\n\nNO API KEY NEEDED!\n\nChange the lat/lon values for other airports."
+          }
+        },
+        {
+          "name": "Get Flights by Aircraft",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://opensky-network.org/api/flights/aircraft?icao24=a835af&begin=1696118400&end=1696204800",
+              "protocol": "https",
+              "host": ["opensky-network", "org"],
+              "path": ["api", "flights", "aircraft"],
+              "query": [
+                { "key": "icao24", "value": "a835af", "description": "Aircraft ICAO24 hex code" },
+                { "key": "begin", "value": "1696118400", "description": "Start time (Unix timestamp)" },
+                { "key": "end", "value": "1696204800", "description": "End time (Unix timestamp)" }
+              ]
+            },
+            "description": "Get flight history for a specific aircraft.\n\nRequires: OpenSky account (free registration)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. SearchAPI.io Google Flights (REAL PRICES)",
+      "description": "FREE: 100 requests/month, no credit card\nSign up: https://www.searchapi.io/\nGives you: REAL flight prices from Google Flights, airlines, durations, stops, booking links\nTHIS IS YOUR SOURCE OF TRUTH FOR PRICES!",
+      "item": [
+        {
+          "name": "⭐ Search Round-Trip Flights (REAL PRICES)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://www.searchapi.io/api/v1/search?engine=google_flights&departure_id={{HOME_AIRPORT}}&arrival_id=MIA&outbound_date=2026-11-25&return_date=2026-11-30&adults=1&type=1&api_key={{SEARCHAPI_KEY}}",
+              "protocol": "https",
+              "host": ["www", "searchapi", "io"],
+              "path": ["api", "v1", "search"],
+              "query": [
+                { "key": "engine", "value": "google_flights" },
+                { "key": "departure_id", "value": "{{HOME_AIRPORT}}", "description": "Your departure airport" },
+                { "key": "arrival_id", "value": "MIA", "description": "Destination airport" },
+                { "key": "outbound_date", "value": "2026-11-25", "description": "Departure date (YYYY-MM-DD)" },
+                { "key": "return_date", "value": "2026-11-30", "description": "Return date (YYYY-MM-DD)" },
+                { "key": "adults", "value": "1", "description": "Number of adults" },
+                { "key": "type", "value": "1", "description": "1=Round-trip, 2=One-way" },
+                { "key": "api_key", "value": "{{SEARCHAPI_KEY}}" }
+              ]
+            },
+            "description": "⭐ THIS IS THE MAIN ONE - Gets REAL flight prices from Google Flights.\n\nReturns:\n- best_flights (top picks)\n- other_flights (more options)\n- Each with: price, airline, departure/arrival times, duration, stops, aircraft type, booking links\n\nChange arrival_id to any airport: LAX, JFK, ORD, CUN, CDG, LHR, etc."
+          }
+        },
+        {
+          "name": "⭐ Search One-Way Flights (REAL PRICES)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://www.searchapi.io/api/v1/search?engine=google_flights&departure_id={{HOME_AIRPORT}}&arrival_id=LAS&outbound_date=2026-12-20&adults=1&type=2&api_key={{SEARCHAPI_KEY}}",
+              "protocol": "https",
+              "host": ["www", "searchapi", "io"],
+              "path": ["api", "v1", "search"],
+              "query": [
+                { "key": "engine", "value": "google_flights" },
+                { "key": "departure_id", "value": "{{HOME_AIRPORT}}" },
+                { "key": "arrival_id", "value": "LAS", "description": "Las Vegas" },
+                { "key": "outbound_date", "value": "2026-12-20" },
+                { "key": "adults", "value": "1" },
+                { "key": "type", "value": "2", "description": "2=One-way" },
+                { "key": "api_key", "value": "{{SEARCHAPI_KEY}}" }
+              ]
+            },
+            "description": "Search one-way flights with real prices."
+          }
+        },
+        {
+          "name": "Search with Stops Filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://www.searchapi.io/api/v1/search?engine=google_flights&departure_id={{HOME_AIRPORT}}&arrival_id=CUN&outbound_date=2026-11-25&return_date=2026-11-30&adults=1&type=1&stops=1&api_key={{SEARCHAPI_KEY}}",
+              "protocol": "https",
+              "host": ["www", "searchapi", "io"],
+              "path": ["api", "v1", "search"],
+              "query": [
+                { "key": "engine", "value": "google_flights" },
+                { "key": "departure_id", "value": "{{HOME_AIRPORT}}" },
+                { "key": "arrival_id", "value": "CUN", "description": "Cancun" },
+                { "key": "outbound_date", "value": "2026-11-25" },
+                { "key": "return_date", "value": "2026-11-30" },
+                { "key": "adults", "value": "1" },
+                { "key": "type", "value": "1" },
+                { "key": "stops", "value": "1", "description": "0=Any, 1=Nonstop only, 2=Up to 1 stop, 3=Up to 2 stops" },
+                { "key": "api_key", "value": "{{SEARCHAPI_KEY}}" }
+              ]
+            },
+            "description": "Search flights filtered by number of stops.\n\nstops values:\n- 0 = Any number of stops\n- 1 = Nonstop only\n- 2 = Up to 1 stop\n- 3 = Up to 2 stops"
+          }
+        }
+      ]
+    }
+  ]
+}
