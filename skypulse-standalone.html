@@ -774,7 +774,7 @@
               <h3 class="text-sm font-semibold text-gray-400 mt-4 mb-2">Sort Results</h3>
               <div class="flex flex-wrap gap-2">
                 <button onclick="aiSortCards('cost')" class="px-3 py-1.5 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-xs font-semibold hover:border-energy-teal transition-smooth">$ Lowest Cost</button>
-                <button onclick="aiSortCards('daysoff')" class="px-3 py-1.5 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-xs font-semibold hover:border-energy-teal transition-smooth">📅 Most Days Off</button>
+                <button onclick="aiSortCards('daysoff')" class="px-3 py-1.5 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-xs font-semibold hover:border-energy-teal transition-smooth">⏱️ Shortest Flight</button>
               </div>
             </div>
           </div>
@@ -2314,139 +2314,118 @@ Or click any quick filter on the left. What sounds good?`);
 
     let lastAIResults = []; // Store for sorting/comparing
 
-    function processAIQuery(query) {
+    async function processAIQuery(query) {
       const q = query.toLowerCase();
       const s = getUserSettings();
-      const homeAirport = s.airport;
-      const remainingPTO = s.totalPTO - s.usedPTO;
-      let filtered = [...destinations];
-      let explanation = '';
-      let requestedPTO = null;
-      let totalBudget = null;
+      const home = s.airport;
+      const ptoMatch = q.match(/(\d+)\s*(?:pto|days?\s*(?:of\s*)?pto|pto\s*days?|vacation days?|days? off)/);
+      const requestedPTO = ptoMatch ? Math.min(10, parseInt(ptoMatch[1])) : 2;
+      const budgetMatch = q.match(/(?:under|below|budget|max|within|less than)\s*\$?(\d{2,5})/);
+      const budget = budgetMatch ? parseInt(budgetMatch[1]) : null;
+      const interest = /beach|ocean|island|tropical/.test(q) ? 'beaches' : /hik|outdoor|nature|mountain|national park|adventure/.test(q) ? 'outdoors'
+        : /museum|art|culture/.test(q) ? 'museums' : /histor/.test(q) ? 'history' : /ski|snowboard/.test(q) ? 'skiing' : '';
 
-      if (q.includes('surprise') || q.includes('random')) {
-        filtered = filtered.sort(() => Math.random() - 0.5).slice(0, 3);
-        explanation = 'Rolling the dice... 🎲';
-      } else {
-        // Parse PTO days: "3 pto days", "with 3 days", "using 2 pto"
-        const ptoMatch = q.match(/(\d+)\s*(?:pto|days?\s*(?:of\s*)?pto|pto\s*days?)/);
-        if (ptoMatch) requestedPTO = parseInt(ptoMatch[1]);
+      const trip = nextTripWindow(requestedPTO, q);
+      if (!trip) { addAIMessage('bot', 'No upcoming holiday is on sale yet to plan around. Try the Search tab with your own dates.'); return; }
+      const nights = Math.max(1, trip.total - 1);
+      addAIMessage('bot', `<p class="text-gray-300">🔎 Checking <b>every destination</b> Google Flights serves from <b>${home}</b> for <b>${trip.label}</b> — ${trip.total} days off using ${trip.pto} PTO…</p>`);
 
-        // Parse total budget: "under $700", "$500 budget"
-        const budgetMatch = q.match(/(?:under|below|budget|max|within)\s*\$?(\d+)/);
-        if (budgetMatch) totalBudget = parseInt(budgetMatch[1]);
-
-        // Budget filter (using total trip cost: flight + hotel)
-        if (q.includes('cheap') || q.includes('budget') || totalBudget) {
-          const budget = totalBudget || 500;
-          const nights = requestedPTO || 3;
-          filtered = filtered.filter(d => (d.baseCost * 2 + d.hotelPerNight * nights) <= budget);
-          if (filtered.length === 0) {
-            // Relax: just sort by cost, show cheapest 3
-            filtered = [...destinations].sort((a, b) => (a.baseCost * 2 + a.hotelPerNight * 3) - (b.baseCost * 2 + b.hotelPerNight * 3)).slice(0, 3);
-            explanation += `Nothing quite under $${budget} total, but here are the most affordable options. `;
-          } else {
-            explanation += `Total trip under ~$${budget} (flight + ${nights} nights hotel). `;
-          }
-        }
-
-        // Weather
-        if (q.includes('warm') || q.includes('sun') || q.includes('beach') || q.includes('tropical') || q.includes('hot')) {
-          filtered = filtered.filter(d => d.avgTemp >= 75 || d.climate === 'tropical');
-          explanation += 'Warm/tropical destinations. ';
-        }
-        if (q.includes('cold') || q.includes('snow') || q.includes('winter')) {
-          filtered = filtered.filter(d => d.avgTemp < 55);
-          explanation += 'Cooler climates. ';
-        }
-
-        // Passport
-        if (q.includes('no passport') || q.includes('without passport') || q.includes('domestic')) {
-          filtered = filtered.filter(d => !d.passport);
-          explanation += 'No passport needed. ';
-        }
-
-        // Weekend / short
-        if (q.includes('weekend') || q.includes('short') || q.includes('quick')) {
-          filtered = filtered.filter(d => d.flightHrs <= 4);
-          explanation += 'Short flights for quick trips. ';
-        }
-
-        // Vibes
-        const vibeMap = { 'beach':'beach', 'food':'food', 'culture':'culture', 'nightlife':'nightlife', 'hiking':'outdoors', 'outdoor':'outdoors', 'adventure':'adventure', 'nature':'nature', 'shopping':'shopping', 'romantic':'romance', 'history':'history', 'relax':'relaxation' };
-        Object.keys(vibeMap).forEach(kw => {
-          if (q.includes(kw)) {
-            filtered = filtered.filter(d => d.vibe.includes(vibeMap[kw]));
-            explanation += `"${kw}" vibe. `;
-          }
-        });
-
-        // PTO-aware: if they specify PTO days, calculate total days off using PTO maximizer logic
-        if (requestedPTO) {
-          explanation += `Using ${requestedPTO} PTO day${requestedPTO > 1 ? 's' : ''}. `;
-        }
+      let all;
+      try {
+        const data = await fetchExplore(home, trip.depart, trip.ret, interest);
+        all = data.destinations.map(x => exploreToDest(x, trip, nights));
+      } catch (e) {
+        addAIMessage('bot', `<p class="text-yellow-300">Live destination search failed (${e.message}). Showing my saved list with live fares instead.</p>`);
+        all = destinations.map(d => ({ ...d, flightPrice: null, hotelNight: d.hotelPerNight, hotelTotal: d.hotelPerNight * nights, tripTotal: null,
+          estTotal: d.baseCost * 2 + d.hotelPerNight * nights, nights, ptoDays: trip.pto, totalDaysOff: trip.total, depart: trip.depart, ret: trip.ret, tripLabel: trip.label }));
       }
+      refreshQuota();
 
-      if (filtered.length === 0) {
-        filtered = [...destinations].sort((a, b) => a.baseCost - b.baseCost).slice(0, 3);
-        explanation = 'No exact matches — here are the best affordable options: ';
-      }
+      // Filters from what you typed
+      const notes = [];
+      let list = [...all];
+      if (/no passport|without (a )?passport|domestic|in the us|usa only/.test(q)) { list = list.filter(d => !d.passport); notes.push('no passport needed'); }
+      else if (/international|abroad|overseas|out of the country|outside the us/.test(q)) { list = list.filter(d => d.passport); notes.push('international'); }
+      if (/warm|sun|hot|tropical|beach/.test(q)) { const HIGHLAND = ['MEX', 'BOG', 'UIO', 'CUZ', 'LPB', 'ADD', 'NBO'];
+        list = list.filter(d => !HIGHLAND.includes(d.code) && (d.lat != null ? Math.abs(d.lat) < 29 : ['tropical'].includes(d.climate))); notes.push('warm weather'); }
+      if (/cold|snow|winter|cool/.test(q)) { list = list.filter(d => d.climate === 'cool' || d.climate === 'cold' || (d.lat != null && d.lat > 40)); notes.push('cooler weather'); }
+      if (/weekend|short flight|quick|close by|nearby/.test(q)) { list = list.filter(d => d.flightHrs == null || d.flightHrs <= 4); notes.push('flights under 4h'); }
+      if (/nonstop|direct/.test(q)) { list = list.filter(d => d.stops === 0); notes.push('nonstop only'); }
+      if (budget) { list = list.filter(d => (d.tripTotal ?? d.estTotal) <= budget); notes.push(`under $${budget} total`); }
+      if (interest) notes.push(interest);
 
-      // Real trip dates: best stretch around the next holiday that's 2+ weeks out and on sale
-      const trip = nextTripWindow(requestedPTO || 1);
-      const nights = trip ? Math.max(1, trip.total - 1) : (requestedPTO || 3);
-      const scored = filtered.map(d => {
-        const hotelTotal = d.hotelPerNight * nights;
-        const estTotal = d.baseCost * 2 + hotelTotal; // only used to rank before live prices arrive
-        return { ...d, flightPrice: null, hotelTotal, tripTotal: null, estTotal, nights,
-          ptoDays: trip ? trip.pto : (requestedPTO || 0), totalDaysOff: trip ? trip.total : nights + 1,
-          depart: trip ? trip.depart : null, ret: trip ? trip.ret : null, tripLabel: trip ? trip.label : '',
-          score: Math.round((estTotal / 1200) * 40 + (d.flightHrs / 10) * 20 + (d.passport ? 20 : 0)) };
-      });
-      scored.sort((a, b) => a.score - b.score);
+      const sorter = (a, b) => (a.tripTotal ?? a.estTotal) - (b.tripTotal ?? b.estTotal);
+      if (/surprise|random/.test(q)) list.sort(() => Math.random() - 0.5); else list.sort(sorter);
+      if (!list.length) { list = [...all].sort(sorter); notes.push('— nothing matched every filter, so here are the best overall'); }
 
-      const top = scored.slice(0, 3);
-      lastAIResults = scored; // Store for sorting
-
-      // Build chat response with "why this trip" 
-      let response = explanation ? `<p class="mb-3 text-gray-300">${explanation}</p>` : '';
-      response += `<p class="mb-4 text-gray-300">Here are my top picks from <strong>${homeAirport}</strong>${trip ? ` for <strong>${trip.label}</strong> (${trip.total} days off, ${trip.pto} PTO)` : ` (${nights} nights)`}. Pulling live fares now…</p>`;
-
-      top.forEach((d, i) => {
-        const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
+      lastAIResults = list;
+      const top = list.slice(0, 9);
+      let response = `<p class="mb-3 text-gray-300">Found <b>${all.length}</b> destinations with live prices${notes.length ? ' · ' + notes.join(', ') : ''}. Top picks for <b>${trip.label}</b>:</p>`;
+      top.slice(0, 3).forEach((d, i) => {
         response += `
           <div class="bg-gray-700/30 rounded-xl p-4 mb-3 border border-gray-700/50">
-            <div class="flex justify-between items-start mb-2">
-              <span class="font-bold text-white text-base">${rank} ${d.emoji} ${d.name}</span>
-              <span class="text-energy-teal font-bold" data-live-total="${d.code}">checking live price…</span>
+            <div class="flex justify-between items-start mb-2 gap-2">
+              <span class="font-bold text-white text-base">${['🥇', '🥈', '🥉'][i]} ${d.emoji} ${d.name}${d.country && d.country !== 'United States' ? `, ${d.country}` : ''}</span>
+              <span class="text-energy-teal font-bold whitespace-nowrap" data-live-total="${d.code}">${d.tripTotal != null ? money(d.tripTotal) + ' total ' + LIVE_TAG : 'checking…'}</span>
             </div>
-            <div class="flex flex-wrap gap-2 mb-2 text-xs">
-              <span class="px-2 py-1 bg-gray-600/50 rounded text-gray-300">✈️ ${d.flightHrs}h flight</span>
-              <span class="px-2 py-1 bg-energy-purple/20 text-energy-purple rounded">${d.ptoDays} PTO days</span>
-              <span class="px-2 py-1 bg-energy-teal/20 text-energy-teal rounded">${d.totalDaysOff} days off</span>
-              <span class="px-2 py-1 bg-gray-600/50 rounded text-gray-300">🏨 $${d.hotelPerNight}/night</span>
+            <div class="flex flex-wrap gap-2 text-xs">
+              <span class="px-2 py-1 bg-gray-600/50 rounded text-gray-300">✈️ ${d.flightPrice != null ? money(d.flightPrice) : '…'} ${d.flightAirline || ''}${d.stops === 0 ? ' · nonstop' : ''}</span>
+              ${d.hotelNight != null ? `<span class="px-2 py-1 bg-gray-600/50 rounded text-gray-300">🏨 ${money(d.hotelNight)}/night${d.hotelLive ? '' : ' (est.)'}</span>` : ''}
+              <span class="px-2 py-1 bg-energy-teal/20 text-energy-teal rounded">${d.totalDaysOff} days off · ${d.ptoDays} PTO</span>
             </div>
-            <p class="text-sm text-gray-400 italic leading-relaxed">"${d.why}"</p>
           </div>`;
       });
-
-      response += `<p class="mt-2 text-xs text-gray-500">Scroll down for full cards with booking links, or ask me to compare two destinations!</p>`;
-
-      setTimeout(() => {
-        addAIMessage('bot', response);
-        showDestCards(top);
-        (async () => { for (const d of top) await ensureLive(d); refreshQuota(); })();
-      }, 600);
+      response += `<p class="mt-2 text-xs text-gray-500">${Math.min(9, list.length)} cards below · use the sort buttons or ⚖️ to compare. Try "beach under $800", "international with 3 PTO", "Christmas nonstop".</p>`;
+      addAIMessage('bot', response);
+      showDestCards(top);
+      if (top.some(d => d.flightPrice == null)) (async () => { for (const d of top.slice(0, 3)) await ensureLive(d); refreshQuota(); })();
+    }
+    const HOLIDAY_WORDS = { 'thanksgiving': 'Thanksgiving', 'christmas': 'Christmas', 'new year': 'New Years Day', 'mlk': 'MLK Day',
+      'martin luther': 'MLK Day', 'president': 'Presidents Day', 'memorial': 'Memorial Day', 'juneteenth': 'Juneteenth',
+      'july 4': 'Independence Day', '4th of july': 'Independence Day', 'independence': 'Independence Day', 'labor day': 'Labor Day',
+      'columbus': 'Columbus Day', 'veterans': 'Veterans Day' };
+    // Best trip window: the named holiday if asked, otherwise the upcoming holiday that gives the most days off for this PTO
+    function nextTripWindow(pto, query) {
+      const holidaySet = getCompanyHolidaySet();
+      const q = (query || '').toLowerCase();
+      const named = Object.keys(HOLIDAY_WORDS).find(k => q.includes(k));
+      let cands = upcomingHolidays().filter(h => daysUntil(h.date) >= 10 && !bookableReason(h.date));
+      if (named) { const only = cands.filter(h => h.name === HOLIDAY_WORDS[named]); if (only.length) cands = only; }
+      let best = null;
+      for (const h of cands.slice(0, 6)) {
+        const b = bestStretch(h.date, pto, holidaySet);
+        if (b && (!best || b.total > best.b.total)) best = { h, b };
+      }
+      if (!best) return null;
+      const { h, b } = best;
+      return { depart: localIso(b.start), ret: localIso(b.end), total: b.total, pto: b.pto, holiday: h.name,
+        label: `${h.name} (${dayStr(b.start)} → ${dayStr(b.end)})` };
     }
 
-    function nextTripWindow(pto) {
-      const holidaySet = getCompanyHolidaySet();
-      const h = HOLIDAY_YEARS.flatMap(y => mockHolidays[y] || []).find(x => daysUntil(x.date) >= 14 && !bookableReason(x.date));
-      if (!h) return null;
-      const b = bestStretch(h.date, pto, holidaySet);
-      if (!b) return null;
-      const iso = localIso;
-      return { depart: iso(b.start), ret: iso(b.end), total: b.total, pto: b.pto, label: `${h.name} (${dayStr(b.start)} → ${dayStr(b.end)})` };
+    async function fetchExplore(from, depart, ret, interest) {
+      const base = getApiBase();
+      if (!base) throw new Error('No live price server set');
+      const r = await fetch(`${base}/api/live-flights?` + new URLSearchParams({ explore: 1, from, depart, return: ret, interest: interest || '', t: Date.now() }), { cache: 'no-store' });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.live) throw new Error(d.error || 'Explore failed');
+      return d;
+    }
+
+    const NO_PASSPORT = ['United States', 'Puerto Rico', 'U.S. Virgin Islands', 'United States Virgin Islands', 'Guam'];
+    function exploreToDest(x, trip, nights) {
+      const local = destinations.find(d => d.code === x.code) || {};
+      const hotelNight = x.hotelPrice != null ? x.hotelPrice : (local.hotelPerNight || null);
+      const hotelTotal = hotelNight != null ? hotelNight * nights : 0;
+      const flightHrs = x.flightMins != null ? Math.round(x.flightMins / 6) / 10 : (local.flightHrs || null);
+      const climate = local.climate || (x.lat == null ? 'varied' : Math.abs(x.lat) < 30 ? 'warm' : x.lat > 42 ? 'cool' : 'mild');
+      return {
+        code: x.code || x.name, name: x.name, country: x.country, emoji: local.emoji || (NO_PASSPORT.includes(x.country) ? '🇺🇸' : '🌍'),
+        thumbnail: x.thumbnail, lat: x.lat, flightPrice: x.flightPrice, flightAirline: x.airline, stops: x.stops, flightHrs,
+        hotelNight, hotelLive: x.hotelPrice != null, hotelTotal, tripTotal: x.flightPrice + hotelTotal, estTotal: x.flightPrice + hotelTotal,
+        passport: !NO_PASSPORT.includes(x.country), climate, avgTemp: local.avgTemp || null, vibe: local.vibe || [],
+        why: local.why || `${x.name}${x.country && x.country !== 'United States' ? ', ' + x.country : ''} — ${x.airline || 'flights'} ${x.stops === 0 ? 'nonstop' : x.stops === 1 ? 'with 1 stop' : ''} from ${getUserSettings().airport}, ${flightHrs ? flightHrs + 'h' : ''} flight.`,
+        nights, ptoDays: trip.pto, totalDaysOff: trip.total, depart: x.start || trip.depart, ret: x.end || trip.ret, tripLabel: trip.label, live: true
+      };
     }
 
     // Fetch the live fare for one destination and update every place it's shown
@@ -2474,20 +2453,22 @@ Or click any quick filter on the left. What sounds good?`);
       lastAIResults = dests.length > 3 ? dests : lastAIResults;
 
       grid.innerHTML = dests.map((d, i) => {
-        const googleUrl = getBookingUrlWithDates('google', homeAirport, d.code, d.depart || '', d.ret || '');
+        const googleUrl = `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${homeAirport} to ${d.code || d.name} on ${d.depart || ''} return ${d.ret || ''}`)}&curr=USD`;
         const kayakUrl = `https://www.kayak.com/explore/${homeAirport}/?budget=&duration=&flightType=round&sort=rank`;
         const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
         return `
-          <div class="bg-gray-900 rounded-xl border border-gray-800 p-4 hover:border-energy-purple/50 transition-all flex flex-col" data-code="${d.code}" data-cost="${d.tripTotal}" data-days="${d.totalDaysOff}">
+          <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden hover:border-energy-purple/50 transition-all flex flex-col" data-code="${d.code}" data-cost="${d.tripTotal}" data-days="${d.totalDaysOff}">
+            ${d.thumbnail ? `<img src="${d.thumbnail}" alt="" loading="lazy" class="w-full h-28 object-cover">` : ''}
+            <div class="p-4 flex flex-col flex-1">
             <!-- Header -->
             <div class="flex justify-between items-start mb-2">
               <div>
                 <h4 class="font-bold text-white">${rank} ${d.emoji} ${d.name}</h4>
-                <p class="text-gray-500 text-xs">${d.code} · ${d.flightHrs}h from ${homeAirport}</p>
+                <p class="text-gray-500 text-xs">${d.country && d.country !== 'United States' ? d.country + ' · ' : ''}${d.code !== d.name ? d.code + ' · ' : ''}${d.flightHrs ? d.flightHrs + 'h from ' + homeAirport : ''}</p>
               </div>
               <div class="text-right">
                 <div class="text-energy-teal font-bold text-lg" data-live-total="${d.code}">${d.tripTotal != null ? `${money(d.tripTotal)} total ${LIVE_TAG}` : (d.liveError ? `<span class="text-yellow-300 text-xs">${d.liveError}</span>` : '…')}</div>
-                <div class="text-gray-500" style="font-size:10px">live flight + ${d.nights || 3}n hotel (est.)</div>
+                <div class="text-gray-500" style="font-size:10px">flight + ${d.nights || 3}n hotel${d.hotelLive ? '' : ' (est.)'}</div>
               </div>
             </div>
             <!-- Key Stats Row -->
@@ -2501,14 +2482,14 @@ Or click any quick filter on the left. What sounds good?`);
                 <div class="text-gray-500" style="font-size:10px">days off</div>
               </div>
               <div class="bg-gray-800 rounded-lg py-2 px-1">
-                <div class="text-white font-bold text-sm">${d.avgTemp}°</div>
-                <div class="text-gray-500" style="font-size:10px">${d.climate}</div>
+                <div class="text-white font-bold text-sm">${d.avgTemp ? d.avgTemp + '°' : (d.stops === 0 ? 'Nonstop' : d.stops != null ? d.stops + ' stop' : '—')}</div>
+                <div class="text-gray-500" style="font-size:10px">${d.avgTemp ? d.climate : 'flight'}</div>
               </div>
             </div>
             <!-- Cost Breakdown -->
             <div class="flex justify-between text-xs text-gray-500 mb-2 px-1">
-              <span data-live-flight="${d.code}">${d.flightPrice != null ? `✈️ ${money(d.flightPrice)} ${LIVE_TAG}` : `<button data-live-btn="${d.code}" onclick="ensureLive(lastAIResults.find(x=>x.code==='${d.code}')).then(refreshQuota)" class="underline text-energy-teal">Get live fare</button>`}</span>
-              <span>🏨 ~${money(d.hotelTotal)} hotel (est.)</span>
+              <span data-live-flight="${d.code}">${d.flightPrice != null ? `✈️ ${money(d.flightPrice)} ${d.flightAirline || ''} ${LIVE_TAG}` : `<button data-live-btn="${d.code}" onclick="ensureLive(lastAIResults.find(x=>x.code==='${d.code}')).then(refreshQuota)" class="underline text-energy-teal">Get live fare</button>`}</span>
+              <span>🏨 ${d.hotelNight != null ? money(d.hotelNight) + '/night' : '—'}${d.hotelLive ? ' ' + LIVE_TAG : ' (est.)'}</span>
               ${!d.passport ? '<span class="text-green-400">No passport</span>' : '<span class="text-yellow-400">Passport req.</span>'}
             </div>
             ${d.tripLabel ? `<div class="text-[11px] text-gray-500 mb-2 px-1">📅 ${d.tripLabel}</div>` : ''}
@@ -2519,9 +2500,10 @@ Or click any quick filter on the left. What sounds good?`);
             <!-- Actions -->
             <div class="flex gap-2 pt-2 border-t border-gray-800 mt-auto">
               <a href="${googleUrl}" target="_blank" class="btn-google flex-1 py-2 text-xs"><iconify-icon icon="logos:google-icon" width="13"></iconify-icon>Google Flights</a>
-              <a href="${kayakUrl}" target="_blank" class="flex-1 text-center py-2 bg-energy-coral text-black rounded-lg font-semibold text-xs hover:opacity-80 no-underline">Kayak</a>
+              <a href="${kayakUrl}" target="_blank" class="btn-ghost flex-1 py-2 text-xs">Kayak</a>
               <button onclick="toggleCompare('${d.code}')" class="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg text-xs font-semibold hover:bg-energy-purple/20 hover:text-energy-purple transition-smooth" id="cmp-${d.code}">⚖️</button>
-              <button onclick="saveAIDest('${d.code}','${d.name}','${d.emoji}')" class="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg text-xs font-semibold hover:bg-energy-coral/20 hover:text-energy-coral transition-smooth">❤️</button>
+              <button onclick="saveAIDest('${d.code}','${(d.name || '').replace(/'/g, '')}','${d.emoji}')" class="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg text-xs font-semibold hover:bg-energy-coral/20 hover:text-energy-coral transition-smooth">❤️</button>
+            </div>
             </div>
           </div>
         `;
@@ -2604,9 +2586,9 @@ Or click any quick filter on the left. What sounds good?`);
       if (lastAIResults.length === 0) return;
       let sorted = [...lastAIResults];
       if (sortBy === 'cost') sorted.sort((a, b) => (a.tripTotal ?? a.estTotal + 1e5) - (b.tripTotal ?? b.estTotal + 1e5));
-      else if (sortBy === 'daysoff') sorted.sort((a, b) => b.totalDaysOff - a.totalDaysOff);
-      showDestCards(sorted.slice(0, 6));
-      addAIMessage('bot', `Results re-sorted by <strong>${sortBy === 'cost' ? 'lowest total cost' : 'most days off'}</strong>. Cards updated below! 👇`);
+      else if (sortBy === 'daysoff') sorted.sort((a, b) => (a.flightHrs ?? 99) - (b.flightHrs ?? 99));
+      showDestCards(sorted.slice(0, 9));
+      addAIMessage('bot', `Results re-sorted by <strong>${sortBy === 'cost' ? 'lowest total cost' : 'shortest flight'}</strong>. Cards updated below! 👇`);
     }
 
     function saveAIDest(code, name, emoji) {
