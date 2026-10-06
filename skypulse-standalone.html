@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SkyPulse | Bold Flight Booking</title>
+  <title>SkyPulse — Live flight prices for every holiday</title>
+  <meta name="description" content="Find the cheapest flights for every US holiday, squeeze the most days off out of your PTO, and discover where you can fly from your airport — live Google Flights prices, free.">
+  <meta property="og:title" content="SkyPulse — get the most vacation from your PTO">
+  <meta property="og:description" content="Live flight prices for every holiday, a PTO optimizer, and 60+ destinations from your airport. Free.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://vacation-use.vercel.app/">
+  <meta name="twitter:card" content="summary">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = { theme: { extend: { colors: {
@@ -308,7 +316,7 @@
               <span class="text-energy-gradient">Dream Vacations</span>
             </h1>
             <p class="hidden md:block text-gray-400 text-base md:text-lg mb-6 md:mb-8 max-w-xl">
-              Explore flights across 5+ airlines, compare prices across years, and get AI-powered recommendations. All free.
+              Live Google Flights prices for every holiday, a PTO optimizer that finds the longest trips for the fewest vacation days, and 60+ destinations from your airport. Free.
             </p>
             <div class="hidden md:flex flex-wrap gap-4">
               <button onclick="switchTab('search')" class="px-8 py-3 bg-gradient-to-r from-energy-purple to-energy-teal rounded-lg font-semibold hover:shadow-lg transition-smooth hover:scale-105">
@@ -321,12 +329,12 @@
               <div class="absolute -inset-4 bg-gradient-to-r from-energy-purple to-energy-teal opacity-20 blur-lg rounded-lg"></div>
               <div class="relative bg-gray-900 rounded-lg p-8 border border-gray-800">
                 <iconify-icon icon="game-icons:flying-rocket" width="100" class="text-energy-teal opacity-50 mb-4"></iconify-icon>
-                <p class="text-gray-400">Compare flights from:</p>
-                <div class="grid grid-cols-2 gap-2 mt-4 text-sm">
-                  <div class="flex items-center space-x-2"><iconify-icon icon="simple-icons:google" class="text-energy-purple"></iconify-icon><span>Google Flights</span></div>
-                  <div class="flex items-center space-x-2"><iconify-icon icon="mdi:plane" class="text-energy-teal"></iconify-icon><span>Skyscanner</span></div>
-                  <div class="flex items-center space-x-2"><iconify-icon icon="mdi:plane-car" class="text-energy-coral"></iconify-icon><span>Kayak</span></div>
-                  <div class="flex items-center space-x-2"><iconify-icon icon="mdi:plane-check" class="text-energy-purple"></iconify-icon><span>Kiwi</span></div>
+                <p class="text-gray-400">What you get:</p>
+                <div class="grid grid-cols-1 gap-2 mt-4 text-sm text-gray-200">
+                  <div>✈️ Live fares from Google Flights</div>
+                  <div>⚡ Most days off per PTO day</div>
+                  <div>🌎 60+ destinations from your airport</div>
+                  <div>📈 Is now a good time to book?</div>
                 </div>
               </div>
             </div>
@@ -936,7 +944,7 @@
               <span>AI Recommendation</span>
               <span class="text-energy-teal">by Claude</span>
             </h3>
-            <p id="aiRecommendation" class="text-gray-300 leading-relaxed">Analyzing flights...</p>
+            <p id="searchSummary" class="text-gray-300 leading-relaxed">Analyzing flights...</p>
           </div>
         </div>
       </div>
@@ -945,8 +953,8 @@
     <!-- Footer -->
     <footer class="border-t border-gray-800 mt-20 py-12 px-4">
       <div class="max-w-7xl mx-auto text-center text-gray-400 text-sm">
-        <p>✅ SkyPulse is FULLY WORKING! No backend needed. All data is local.</p>
-        <p class="mt-2">Search flights from Google Flights, Skyscanner, Kayak, Kiwi, and Amadeus</p>
+        <p>Prices come live from Google Flights (via SerpApi) and can change quickly — always confirm on the booking site before you buy.</p>
+        <p class="mt-2">SkyPulse is an independent project and isn't affiliated with Google, Kayak or any airline. Your settings stay in your own browser.</p>
       </div>
     </footer>
   </div>
@@ -960,7 +968,7 @@
     // ==========================================
     // USER SETTINGS - Personalization
     // ==========================================
-    const DEFAULT_SETTINGS = { name: '', airport: 'DFW', totalPTO: 17, usedPTO: 2, deadline: '2027-05-26', apiBase: '' };
+    const DEFAULT_SETTINGS = { name: '', airport: 'DFW', totalPTO: 15, usedPTO: 0, deadline: `${new Date().getFullYear() + 1}-12-31`, apiBase: '' };
 
     function getUserSettings() {
       try {
@@ -974,7 +982,7 @@
         name: document.getElementById('settingsName').value.trim(),
         airport: document.getElementById('settingsAirport').value,
         totalPTO: parseInt(document.getElementById('settingsTotalPTO').value) || 17,
-        usedPTO: parseInt(document.getElementById('settingsUsedPTO').value) || 0,
+        usedPTO: Math.min(parseInt(document.getElementById('settingsUsedPTO').value) || 0, parseInt(document.getElementById('settingsTotalPTO').value) || 17),
         deadline: document.getElementById('settingsDeadline').value || '2027-05-26',
         apiBase: (document.getElementById('settingsApiBase')?.value || '').trim().replace(/\/+$/, '')
       };
@@ -1017,7 +1025,7 @@
       const airport = document.getElementById('settingsAirport')?.value || s.airport;
       const total = parseInt(document.getElementById('settingsTotalPTO')?.value) || s.totalPTO;
       const used = parseInt(document.getElementById('settingsUsedPTO')?.value) || s.usedPTO;
-      const remaining = total - used;
+      const remaining = Math.max(0, total - used);
       const deadline = document.getElementById('settingsDeadline')?.value || s.deadline;
       const deadlineDisplay = new Date(deadline + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
@@ -1027,7 +1035,7 @@
 
     function applySettingsToUI() {
       const s = getUserSettings();
-      const remaining = s.totalPTO - s.usedPTO;
+      const remaining = Math.max(0, s.totalPTO - s.usedPTO);
       const deadlineDisplay = new Date(s.deadline + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
       const deadlineFull = new Date(s.deadline + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
@@ -1044,7 +1052,7 @@
 
       // Update PTO budget bar width
       const ptoBar = document.querySelector('[data-pto-bar]');
-      if (ptoBar) ptoBar.style.width = Math.round((s.usedPTO / s.totalPTO) * 100) + '%';
+      if (ptoBar) ptoBar.style.width = Math.min(100, Math.round((s.usedPTO / Math.max(1, s.totalPTO)) * 100)) + '%';
     }
 
     // Live preview when form changes
@@ -1283,6 +1291,7 @@
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
       const tab = document.getElementById(tabName + '-tab');
       if (tab) tab.classList.remove('hidden');
+      const ais = document.getElementById('aiSection'); if (ais && tabName !== 'search') ais.classList.add('hidden');
       document.querySelectorAll('[data-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
       const m = document.querySelector(`.mtab[data-tab="${tabName}"]`); if (m) m.scrollIntoView({ inline: 'center', block: 'nearest' });
       const main = document.getElementById('mainContent');
@@ -1376,7 +1385,7 @@
     function buildSmartPlan(rankings, s) {
       const el = document.getElementById('aiContent');
       if (!el) return;
-      let left = s.totalPTO - s.usedPTO;
+      let left = Math.max(0, s.totalPTO - s.usedPTO);
       const picks = [], taken = [];
       const free = rankings.filter(r => r.scenarios[0] && r.scenarios[0].pto === 0 && r.scenarios[0].total >= 3);
       for (const r of [...rankings].sort((a, b) => b.value - a.value)) {
@@ -1403,7 +1412,7 @@
       const used = picks.reduce((t, p) => t + p.pick.pto, 0);
       const daysOff = picks.reduce((t, p) => t + p.pick.total, 0);
       el.innerHTML = `
-        <p class="text-sm text-gray-400">Built from your settings: <b>${s.totalPTO - s.usedPTO}</b> PTO days left, use by <b>${fmtDate(s.deadline)}</b>. Weekends and holidays are free.</p>
+        <p class="text-sm text-gray-400">Built from your settings: <b>${Math.max(0, s.totalPTO - s.usedPTO)}</b> PTO days left, use by <b>${fmtDate(s.deadline)}</b>. Weekends and holidays are free.</p>
         <div class="space-y-2">
           ${picks.map(p => `<div class="bg-gray-900/50 rounded-lg p-3"><b class="text-white">${p.r.name}</b> <span class="text-gray-400">— ${p.pick.desc}</span></div>`).join('') || '<p>No PTO trips fit before your deadline.</p>'}
         </div>
@@ -1486,9 +1495,8 @@
         btn.classList.remove('bg-energy-purple/20', 'border-energy-purple', 'text-energy-purple');
         btn.classList.add('border-gray-700', 'text-gray-400');
       });
-      event.target.classList.add('bg-energy-purple/20', 'border-energy-purple', 'text-energy-purple');
-      event.target.classList.remove('border-gray-700', 'text-gray-400');
-      
+      const btn = document.querySelector(`.year-btn[data-year-offset="${year - THIS_YEAR}"]`);
+      if (btn) { btn.classList.add('bg-energy-purple/20', 'border-energy-purple', 'text-energy-purple'); btn.classList.remove('border-gray-700', 'text-gray-400'); }
       displayHolidaysForYear(year);
     }
 
@@ -1518,7 +1526,7 @@
       // Opened from server.js or Vercel? Then the API is on the same site.
       const h = location.hostname;
       if (location.protocol.startsWith('http') && !h.endsWith('github.io')) return location.origin;
-      return '';
+      return 'https://vacation-use.vercel.app';
     }
 
     function addDays(isoDate, n) {
@@ -1570,8 +1578,8 @@
     async function fetchLiveFlights(from, to, depart, ret) {
       const base = getApiBase();
       if (!base) throw new Error('No live price server set (Settings → Live Flight Prices)');
-      const url = `${base}/api/live-flights?` + new URLSearchParams({ from, to, depart, return: ret, t: Date.now() });
-      const r = await fetch(url, { cache: 'no-store' });
+      const url = `${base}/api/live-flights?` + new URLSearchParams({ from, to, depart, return: ret });
+      const r = await fetch(url);
       const data = await r.json().catch(() => ({}));
       if (!r.ok || !data.live) throw new Error(data.error || `Server returned ${r.status}`);
       return data;
@@ -1608,7 +1616,7 @@
       if (window.innerWidth < 768) { const rt = document.getElementById('resultsTop'); if (rt) window.scrollTo({ top: rt.getBoundingClientRect().top + scrollY - 110, behavior: 'smooth' }); }
       const ret = addDays(depart, 7); // same 7-day trip the booking links use
       const container = document.getElementById('flightsContainer');
-      container.innerHTML = `<div class="text-center py-12 text-gray-400"><iconify-icon icon="mdi:loading" class="animate-spin" width="40"></iconify-icon><p class="mt-3">Getting live prices ${from} → ${destination} (${depart} – ${ret})…</p></div>`;
+      container.innerHTML = `<div class="text-center py-12 text-gray-400"><iconify-icon icon="mdi:loading" class="animate-spin" width="40"></iconify-icon><p class="mt-3">Getting live prices ${from} → ${destination} (${fmtDate(depart)} – ${fmtDate(ret)})…</p><p class="text-xs text-gray-500 mt-1">Live searches take about 5–20 seconds</p></div>`;
 
       let flights;
       try {
@@ -1672,7 +1680,8 @@
       const kUrl = liveStatus.depart ? getBookingUrlWithDates('kayak', from, destination, liveStatus.depart, liveStatus.ret) : getBookingUrl('kayak', destination, selectedHoliday.date);
       const swUrl = liveStatus.depart ? getBookingUrlWithDates('southwest', from, destination, liveStatus.depart, liveStatus.ret) : getBookingUrl('southwest', destination, selectedHoliday.date);
 
-      container.innerHTML = liveBanner() + flights.slice(0, 8).map((flight) => {
+      window.__shownFlights = flights.slice(0, 8);
+      container.innerHTML = liveBanner() + flights.slice(0, 8).map((flight, idx) => {
         const isCheapest = flight === cheapest, isBestNonstop = flight === firstNonstop;
         const dep = splitTime(flight.departTime), arr = splitTime(flight.arriveTime);
         return `
@@ -1715,18 +1724,20 @@
           <div class="grid grid-cols-3 gap-2">
             <a href="${kUrl}" target="_blank" rel="noopener" class="btn-ghost py-2 text-sm">Kayak</a>
             <a href="${swUrl}" target="_blank" rel="noopener" class="btn-ghost py-2 text-sm">Southwest</a>
-            <button onclick="saveTrip('${flight.airline}', ${flight.price}, '${selectedHoliday.name}')" class="btn-ghost py-2 text-sm"><iconify-icon icon="mdi:heart-outline"></iconify-icon>Save</button>
+            <button onclick="saveTripIdx(${idx})" class="btn-ghost py-2 text-sm"><iconify-icon icon="mdi:heart-outline"></iconify-icon>Save</button>
           </div>
         </div>`;
       }).join('');
 
       document.getElementById('aiSection').classList.remove('hidden');
-      document.getElementById('aiRecommendation').textContent = 
+      document.getElementById('searchSummary').textContent = 
         flights[0] ? (liveStatus.live
           ? `Live check: best option is ${flights[0].airline} at $${flights[0].price} round-trip${flights[0].stops === 0 ? ' (nonstop)' : ''}.` + (liveStatus.insights && liveStatus.insights.priceLevel ? ` Google rates current prices for this route as ${liveStatus.insights.priceLevel}.` : '')
           : `Sample prices only — connect the live price server in Settings for real fares. Cheapest sample: ${flights[0].airline} at $${flights[0].price}.`) 
         : 'No flights available.';
     }
+
+    function saveTripIdx(i) { const f = (window.__shownFlights || [])[i]; if (f && selectedHoliday) saveTrip(f.airline, f.price, selectedHoliday.name); }
 
     function saveTrip(airline, price, holiday) {
       const trip = {
@@ -1756,7 +1767,7 @@
         <div class="card-hover bg-gray-900 rounded-xl border border-gray-800 p-6">
           <div class="flex justify-between items-start mb-4">
             <div>
-              <div class="font-bold text-lg text-white">${trip.airline}</div>
+              <div class="font-bold text-lg text-white">${esc(trip.airline)}</div>
               <div class="text-sm text-gray-400">${trip.year}</div>
             </div>
             <button onclick="deleteSavedTrip(${trip.id})" class="text-gray-400 hover:text-energy-coral transition-smooth">
@@ -1764,7 +1775,7 @@
             </button>
           </div>
           <div class="text-2xl font-bold text-energy-teal mb-2">$${trip.price}</div>
-          <div class="text-sm text-gray-400">${trip.holiday}</div>
+          <div class="text-sm text-gray-400">${esc(trip.holiday)}</div>
         </div>
       `).join('');
     }
@@ -2250,7 +2261,7 @@
       if (!msgs) return;
 
       const s = getUserSettings();
-      const remaining = s.totalPTO - s.usedPTO;
+      const remaining = Math.max(0, s.totalPTO - s.usedPTO);
       const deadlineDisplay = new Date(s.deadline + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
       addAIMessage('bot', `Hey${s.name ? ' ' + s.name : ''}! 👋 I'm your AI travel assistant. I know your PTO situation — <strong>${remaining} days remaining</strong>, deadline ${deadlineDisplay}, flying out of <strong>${s.airport}</strong>.
@@ -2269,7 +2280,10 @@ Or click any quick filter on the left. What sounds good?`);
       renderSavedDests();
     }
 
+    function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
     function addAIMessage(role, text) {
+      if (role !== 'bot') text = esc(text);
       const msgs = document.getElementById('aiChatMessages');
       const isBot = role === 'bot';
       const div = document.createElement('div');
@@ -2409,7 +2423,7 @@ Or click any quick filter on the left. What sounds good?`);
     async function fetchExplore(from, depart, ret, interest) {
       const base = getApiBase();
       if (!base) throw new Error('No live price server set');
-      const r = await fetch(`${base}/api/live-flights?` + new URLSearchParams({ explore: 1, from, depart, return: ret, interest: interest || '', t: Date.now() }), { cache: 'no-store' });
+      const r = await fetch(`${base}/api/live-flights?` + new URLSearchParams({ explore: 1, from, depart, return: ret }));
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d.live) throw new Error(d.error || 'Explore failed');
       return d;
@@ -2424,7 +2438,7 @@ Or click any quick filter on the left. What sounds good?`);
       const flightHrs = x.flightMins != null ? Math.round(x.flightMins / 6) / 10 : (local.flightHrs || null);
       const climate = local.climate || (x.lat == null ? 'varied' : Math.abs(x.lat) < 30 ? 'warm' : x.lat > 42 ? 'cool' : 'mild');
       return {
-        code: x.code || x.name, name: x.name, country: x.country, emoji: local.emoji || (NO_PASSPORT.includes(x.country) ? '🇺🇸' : '🌍'),
+        code: x.code || ('X' + String(x.name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 15)), name: x.name, country: x.country, emoji: local.emoji || (NO_PASSPORT.includes(x.country) ? '🇺🇸' : '🌍'),
         thumbnail: x.thumbnail, lat: x.lat, flightPrice: x.flightPrice, flightAirline: x.airline, stops: x.stops, flightHrs,
         hotelNight, hotelLive: x.hotelPrice != null, hotelTotal, tripTotal: x.flightPrice + hotelTotal, estTotal: x.flightPrice + hotelTotal,
         passport: !NO_PASSPORT.includes(x.country), climate, avgTemp: local.avgTemp || null, vibe: local.vibe || [],
@@ -2507,7 +2521,7 @@ Or click any quick filter on the left. What sounds good?`);
               <a href="${googleUrl}" target="_blank" class="btn-google flex-1 py-2 text-xs"><iconify-icon icon="logos:google-icon" width="13"></iconify-icon>Google Flights</a>
               <a href="${kayakUrl}" target="_blank" class="btn-ghost flex-1 py-2 text-xs">Kayak</a>
               <button onclick="toggleCompare('${d.code}')" class="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg text-xs font-semibold hover:bg-energy-purple/20 hover:text-energy-purple transition-smooth" id="cmp-${d.code}">⚖️</button>
-              <button onclick="saveAIDest('${d.code}','${(d.name || '').replace(/'/g, '')}','${d.emoji}')" class="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg text-xs font-semibold hover:bg-energy-coral/20 hover:text-energy-coral transition-smooth">❤️</button>
+              <button onclick="saveAIDestCode('${d.code}')" class="px-3 py-2 bg-gray-800 text-gray-300 rounded-lg text-xs font-semibold hover:bg-energy-coral/20 hover:text-energy-coral transition-smooth">❤️</button>
             </div>
             </div>
           </div>
@@ -2596,6 +2610,8 @@ Or click any quick filter on the left. What sounds good?`);
       addAIMessage('bot', `Results re-sorted by <strong>${sortBy === 'cost' ? 'lowest total cost' : 'shortest flight'}</strong>. Cards updated below! 👇`);
     }
 
+    function saveAIDestCode(code) { const d = lastAIResults.find(x => x.code === code); if (d) saveAIDest(d.code, d.name, d.emoji); }
+
     function saveAIDest(code, name, emoji) {
       if (!aiSavedDests.find(d => d.code === code)) {
         aiSavedDests.push({ code, name, emoji, savedAt: new Date().toLocaleDateString() });
@@ -2613,7 +2629,7 @@ Or click any quick filter on the left. What sounds good?`);
       }
       el.innerHTML = aiSavedDests.map(d => `
         <div class="flex justify-between items-center bg-gray-800 rounded-lg px-3 py-2">
-          <span class="text-white text-sm">${d.emoji} ${d.name}</span>
+          <span class="text-white text-sm">${esc(d.emoji)} ${esc(d.name)}</span>
           <button onclick="removeAIDest('${d.code}')" class="text-gray-500 hover:text-energy-coral text-xs">✕</button>
         </div>
       `).join('');

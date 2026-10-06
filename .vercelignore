@@ -1,0 +1,12 @@
+# Only the app itself is published - docs, old prototypes and scripts stay private
+*.md
+docs/
+src/
+skypulse-pto-optimizer.html
+skypulse-with-backend.html
+vacation_api_demo.js
+vacation_backend.js
+push-to-github.sh
+SkyPulse_Free_Flight_APIs.postman_collection.json
+api/flights.js
+.env.example

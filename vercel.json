@@ -1,9 +1,15 @@
 {
   "functions": {
-    "api/flights.js": { "maxDuration": 30 },
     "api/live-flights.js": { "maxDuration": 30 }
   },
   "rewrites": [
     { "source": "/", "destination": "/skypulse-standalone.html" }
+  ],
+  "headers": [
+    { "source": "/(.*)", "headers": [
+      { "key": "X-Content-Type-Options", "value": "nosniff" },
+      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+      { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+    ] }
   ]
 }
