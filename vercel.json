@@ -1,16 +1,9 @@
 {
-  "version": 2,
-  "buildCommand": "echo 'No build needed'",
-  "outputDirectory": ".",
-  "public": true,
   "functions": {
-    "api/flights.js": {
-      "memory": 1024,
-      "maxDuration": 30
-    },
-    "api/live-flights.js": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  }
+    "api/flights.js": { "maxDuration": 30 },
+    "api/live-flights.js": { "maxDuration": 30 }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/skypulse-standalone.html" }
+  ]
 }
