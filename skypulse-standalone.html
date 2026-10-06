@@ -860,6 +860,17 @@
               </div>
             </div>
 
+            <!-- Live Prices -->
+            <div class="bg-gray-800/50 rounded-xl border border-gray-700 p-6 mb-6">
+              <h3 class="font-bold text-white mb-4">🔴 Live Flight Prices</h3>
+              <label class="block text-sm font-semibold mb-2 text-gray-300">Live price server URL</label>
+              <input type="url" id="settingsApiBase" placeholder="https://your-app.vercel.app"
+                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-energy-purple focus:outline-none">
+              <p class="text-xs text-gray-500 mt-1">Where server.js / the Vercel app runs. Leave blank if this page is opened from that server.</p>
+              <button type="button" onclick="testLiveServer()" class="mt-3 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-300 hover:border-energy-teal hover:text-energy-teal transition-smooth">Test connection</button>
+              <p id="liveServerStatus" class="text-sm mt-2 text-gray-400"></p>
+            </div>
+
             <!-- Preview -->
             <div id="settingsPreview" class="bg-gradient-to-r from-energy-purple/10 to-energy-teal/10 rounded-xl border border-energy-purple/30 p-5 mb-6">
               <h3 class="text-sm font-semibold text-energy-purple mb-2">Preview</h3>
@@ -918,7 +929,7 @@
     // ==========================================
     // USER SETTINGS - Personalization
     // ==========================================
-    const DEFAULT_SETTINGS = { name: '', airport: 'DFW', totalPTO: 17, usedPTO: 2, deadline: '2027-05-26' };
+    const DEFAULT_SETTINGS = { name: '', airport: 'DFW', totalPTO: 17, usedPTO: 2, deadline: '2027-05-26', apiBase: '' };
 
     function getUserSettings() {
       try {
@@ -933,7 +944,8 @@
         airport: document.getElementById('settingsAirport').value,
         totalPTO: parseInt(document.getElementById('settingsTotalPTO').value) || 17,
         usedPTO: parseInt(document.getElementById('settingsUsedPTO').value) || 0,
-        deadline: document.getElementById('settingsDeadline').value || '2027-05-26'
+        deadline: document.getElementById('settingsDeadline').value || '2027-05-26',
+        apiBase: (document.getElementById('settingsApiBase')?.value || '').trim().replace(/\/+$/, '')
       };
       localStorage.setItem('skypulseSettings', JSON.stringify(s));
       document.getElementById('settingsSaved').classList.remove('hidden');
@@ -960,6 +972,8 @@
       if (totalEl) totalEl.value = s.totalPTO;
       if (usedEl) usedEl.value = s.usedPTO;
       if (deadlineEl) deadlineEl.value = s.deadline;
+      const apiEl = document.getElementById('settingsApiBase');
+      if (apiEl) apiEl.value = s.apiBase || '';
       updateSettingsPreview();
     }
 
@@ -1439,6 +1453,7 @@ Best strategy: [explanation]`;
     // Populate PTO Optimizer dropdown with future dates only
     function populatePTODropdown() {
       const dropdown = document.getElementById('ptoHoliday');
+      if (!dropdown) return; // element not on this page
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -1526,7 +1541,55 @@ Best strategy: [explanation]`;
         options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
     }
 
-    function searchFlights() {
+    // ==========================================
+    // LIVE FLIGHT SEARCH - real prices every time
+    // ==========================================
+    function getApiBase() {
+      const saved = (getUserSettings().apiBase || '').replace(/\/+$/, '');
+      if (saved) return saved;
+      // Opened from server.js or Vercel? Then the API is on the same site.
+      const h = location.hostname;
+      if (location.protocol.startsWith('http') && !h.endsWith('github.io')) return location.origin;
+      return '';
+    }
+
+    function addDays(isoDate, n) {
+      const d = new Date(isoDate + 'T12:00:00');
+      d.setDate(d.getDate() + n);
+      return d.toISOString().slice(0, 10);
+    }
+
+    let liveStatus = { live: false };
+
+    async function fetchLiveFlights(from, to, depart, ret) {
+      const base = getApiBase();
+      if (!base) throw new Error('No live price server set (Settings → Live Flight Prices)');
+      const url = `${base}/api/live-flights?` + new URLSearchParams({ from, to, depart, return: ret, t: Date.now() });
+      const r = await fetch(url, { cache: 'no-store' });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok || !data.live) throw new Error(data.error || `Server returned ${r.status}`);
+      return data;
+    }
+
+    async function testLiveServer() {
+      const el = document.getElementById('liveServerStatus');
+      const typed = (document.getElementById('settingsApiBase')?.value || '').trim().replace(/\/+$/, '');
+      const base = typed || getApiBase();
+      if (!base) { el.textContent = '⚠️ Enter your server URL first.'; return; }
+      el.textContent = 'Checking…';
+      try {
+        const r = await fetch(`${base}/api/live-flights?status=1`, { cache: 'no-store' });
+        const d = await r.json();
+        const on = (d.providers || []).filter(p => p.configured).map(p => p.name);
+        el.innerHTML = on.length
+          ? `✅ Connected. Live providers ON: <b>${on.join(', ')}</b>`
+          : '⚠️ Server reached, but no API keys are set on it yet.';
+      } catch (e) {
+        el.textContent = '❌ Could not reach ' + base + ' — is the server running?';
+      }
+    }
+
+    async function searchFlights() {
       const destination = document.getElementById('destination').value;
 
       if (!destination || !selectedHoliday) {
@@ -1534,34 +1597,58 @@ Best strategy: [explanation]`;
         return;
       }
 
-      let flights = mockFlights[destination] || defaultFlights;
-      
-      // Add outbound and return prices
-      flights = flights.map(f => ({
-        ...f,
-        outbound: Math.floor(f.price / 2) + Math.floor(Math.random() * 30 - 15),
-        return: Math.floor(f.price / 2) + Math.floor(Math.random() * 30 - 15),
-        price: f.price + Math.floor(Math.random() * 50 - 25)
-      }));
+      const from = getUserSettings().airport || 'DFW';
+      const depart = selectedHoliday.date;
+      const ret = addDays(depart, 7); // same 7-day trip the booking links use
+      const container = document.getElementById('flightsContainer');
+      container.innerHTML = `<div class="text-center py-12 text-gray-400"><iconify-icon icon="mdi:loading" class="animate-spin" width="40"></iconify-icon><p class="mt-3">Getting live prices ${from} → ${destination} (${depart} – ${ret})…</p></div>`;
 
-      // Filter out flights with more than 1 stop (nonstop and 1-stop only)
+      let flights;
+      try {
+        const data = await fetchLiveFlights(from, destination, depart, ret);
+        flights = data.flights.map(f => ({ ...f, outbound: null, return: null }));
+        liveStatus = { live: true, provider: data.provider, fetchedAt: data.fetchedAt, insights: data.insights, depart, ret };
+        if (!flights.length) {
+          container.innerHTML = liveBanner() + `<div class="text-center py-12 text-gray-400"><p>No nonstop or 1-stop flights found for these dates.</p></div>`;
+          document.getElementById('statPrice').textContent = '-';
+          return;
+        }
+      } catch (err) {
+        console.warn('Live search failed, showing sample prices:', err.message);
+        liveStatus = { live: false, reason: err.message, depart, ret };
+        flights = (mockFlights[destination] || defaultFlights).map(f => ({
+          ...f,
+          outbound: Math.floor(f.price / 2) + Math.floor(Math.random() * 30 - 15),
+          return: Math.floor(f.price / 2) + Math.floor(Math.random() * 30 - 15),
+          price: f.price + Math.floor(Math.random() * 50 - 25)
+        }));
+      }
+
+      // Nonstop and 1-stop only; nonstop first, then cheapest
       flights = flights.filter(f => f.stops <= 1);
-      
-      // Sort: nonstop first, then by price
-      flights.sort((a, b) => {
-        if (a.stops !== b.stops) return a.stops - b.stops;
-        return a.price - b.price;
-      });
+      flights.sort((a, b) => (a.stops - b.stops) || (a.price - b.price));
 
-      const avg = Math.round(flights.reduce((sum, f) => sum + f.price, 0) / flights.length);
+      const avg = Math.round(flights.reduce((sum, f) => sum + f.price, 0) / Math.max(1, flights.length));
       displayFlights(flights, avg);
+    }
+
+    function liveBanner() {
+      if (liveStatus.live) {
+        const t = new Date(liveStatus.fetchedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        const ins = liveStatus.insights || {};
+        const level = ins.priceLevel ? ` · Prices are <b>${ins.priceLevel}</b> right now` : '';
+        const range = Array.isArray(ins.typicalRange) ? ` (typical $${ins.typicalRange[0]}–$${ins.typicalRange[1]})` : '';
+        return `<div class="rounded-xl border border-energy-teal/40 bg-energy-teal/10 px-4 py-3 text-sm text-gray-200"><span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-2 animate-pulse"></span><b>LIVE</b> Google Flights prices via ${liveStatus.provider} · fetched ${t} · ${liveStatus.depart} → ${liveStatus.ret}${level}${range}</div>`;
+      }
+      return `<div class="rounded-xl border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200">⚠️ <b>SAMPLE prices, not live.</b> ${liveStatus.reason || ''}</div>`;
     }
 
     function displayFlights(flights, avg) {
       const container = document.getElementById('flightsContainer');
+      const destination = document.getElementById('destination').value;
       document.getElementById('statPrice').textContent = '$' + avg;
 
-      container.innerHTML = flights.slice(0, 6).map((flight, index) => `
+      container.innerHTML = liveBanner() + flights.slice(0, 8).map((flight, index) => `
         <div class="card-hover bg-gray-900 rounded-xl border border-gray-800 p-6 ${index === 0 ? 'ring-2 ring-energy-purple' : ''}">
           ${index === 0 ? '<div class="inline-block px-3 py-1 bg-energy-coral text-black text-xs font-bold rounded-full mb-4">🏆 BEST DEAL</div>' : ''}
           ${flight.stops === 0 ? '<div class="inline-block px-3 py-1 bg-energy-teal text-black text-xs font-bold rounded-full mb-4 ml-2">✈️ NONSTOP</div>' : ''}
@@ -1576,6 +1663,7 @@ Best strategy: [explanation]`;
               <div class="text-xs text-gray-400 mt-1">Total</div>
             </div>
           </div>
+          ${flight.outbound != null ? `
           <div class="bg-gray-800/50 rounded-lg p-3 mb-4 space-y-2">
             <div class="flex justify-between text-sm">
               <span class="text-gray-400">Outbound:</span>
@@ -1585,7 +1673,13 @@ Best strategy: [explanation]`;
               <span class="text-gray-400">Return:</span>
               <span class="font-semibold text-white">$${flight.return}</span>
             </div>
-          </div>
+          </div>` : `
+          <div class="bg-gray-800/50 rounded-lg p-3 mb-4 space-y-2 text-sm">
+            <div class="flex justify-between"><span class="text-gray-400">Outbound departs:</span><span class="font-semibold text-white">${flight.departTime || '-'}</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Arrives:</span><span class="font-semibold text-white">${flight.arriveTime || '-'}</span></div>
+            ${flight.flightNumbers && flight.flightNumbers.length ? `<div class="flex justify-between"><span class="text-gray-400">Flights:</span><span class="font-semibold text-white">${flight.flightNumbers.join(', ')}</span></div>` : ''}
+            ${flight.layovers && flight.layovers.length ? `<div class="flex justify-between"><span class="text-gray-400">Layover:</span><span class="font-semibold text-white">${flight.layovers.map(l => l.airport + ' ' + Math.round(l.mins/60*10)/10 + 'h').join(', ')}</span></div>` : ''}
+          </div>`}
           <div class="space-y-2 text-sm text-gray-400 mb-4">
             <div class="flex items-center space-x-2">
               <iconify-icon icon="mdi:clock"></iconify-icon>
@@ -1593,7 +1687,7 @@ Best strategy: [explanation]`;
             </div>
             <div class="flex items-center space-x-2">
               <iconify-icon icon="mdi:plane-connection"></iconify-icon>
-              <span>${flight.stops === 0 ? '✅ Nonstop' : flight.stops + ' stop (Direct)'}</span>
+              <span>${flight.stops === 0 ? '✅ Nonstop' : flight.stops + ' stop'}</span>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2 mb-2">
@@ -1621,7 +1715,9 @@ Best strategy: [explanation]`;
 
       document.getElementById('aiSection').classList.remove('hidden');
       document.getElementById('aiRecommendation').textContent = 
-        flights[0] ? `This is an excellent selection of flights! The cheapest option is ${flights[0].airline} at $${flights[0].price}, which is a great deal for this route. I recommend booking 6-8 weeks in advance for the best prices.` 
+        flights[0] ? (liveStatus.live
+          ? `Live check: best option is ${flights[0].airline} at $${flights[0].price} round-trip${flights[0].stops === 0 ? ' (nonstop)' : ''}.` + (liveStatus.insights && liveStatus.insights.priceLevel ? ` Google rates current prices for this route as ${liveStatus.insights.priceLevel}.` : '')
+          : `Sample prices only — connect the live price server in Settings for real fares. Cheapest sample: ${flights[0].airline} at $${flights[0].price}.`) 
         : 'No flights available.';
     }
 

@@ -10,7 +10,8 @@ const cors = require('cors');
 const fetch = require('node-fetch');
 
 const app = express();
-const PORT = 3000; // Your server will run on http://localhost:3000
+const PORT = process.env.PORT || 3000; // Your server will run on http://localhost:3000
+const { searchLiveFlights, providerStatus } = require('./lib/liveFlights');
 
 // Step 3: Allow your website to talk to this server
 app.use(cors());
@@ -20,12 +21,31 @@ app.use(express.json());
 const AVIATIONSTACK_KEY = process.env.AVIATIONSTACK_KEY;
 
 if (!AVIATIONSTACK_KEY) {
-  console.error('❌ ERROR: AVIATIONSTACK_KEY not found in .env file!');
-  console.error('Please add: AVIATIONSTACK_KEY=your_key_here to your .env file');
-  process.exit(1);
+  console.warn('⚠️  AVIATIONSTACK_KEY not set - schedule endpoints disabled (live prices still work)');
 }
+console.log('✈️  Live price providers:', providerStatus().map(p => `${p.name}=${p.configured ? 'ON' : 'off'}`).join(', '));
 
-console.log('✅ API Key loaded successfully (hidden from browser)');
+// ============================================
+// LIVE PRICES: real Google Flights prices, every search
+// GET /api/live-flights?from=DFW&to=CUN&depart=2026-11-26&return=2026-12-03
+// ============================================
+app.get('/api/live-flights', async (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  if (req.query.status) return res.json({ ok: true, providers: providerStatus() });
+  try {
+    const { from, to, depart } = req.query;
+    console.log(`📡 LIVE search ${from} → ${to} ${depart} / ${req.query.return || 'one-way'}`);
+    const data = await searchLiveFlights({ from, to, depart, ret: req.query.return });
+    console.log(`✅ ${data.count} live flights from ${data.provider}`);
+    res.json(data);
+  } catch (err) {
+    console.error('❌ Live search failed:', err.message);
+    res.status(err.status || 500).json({ live: false, error: err.message, attempts: err.attempts || [] });
+  }
+});
+
+// Serve the dashboard from this server too (http://localhost:3000/skypulse-standalone.html)
+app.get(['/', '/skypulse-standalone.html'], (req, res) => res.sendFile(__dirname + '/skypulse-standalone.html'));
 
 // ============================================
 // ENDPOINT 1: Search flights by airline code
@@ -134,6 +154,7 @@ app.listen(PORT, () => {
   console.log('');
   console.log('📍 Available endpoints:');
   console.log(`   GET  http://localhost:${PORT}/api/health`);
+  console.log(`   GET  http://localhost:${PORT}/api/live-flights?from=DFW&to=CUN&depart=YYYY-MM-DD&return=YYYY-MM-DD`);
   console.log(`   GET  http://localhost:${PORT}/api/flights/:airline/:flightNumber`);
   console.log(`   POST http://localhost:${PORT}/api/search-flights`);
   console.log(`   GET  http://localhost:${PORT}/api/airports/:iataCode`);
