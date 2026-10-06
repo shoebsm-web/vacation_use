@@ -265,6 +265,7 @@
           <button onclick="switchTab('settings')" class="tab-underline transition-smooth hover:text-energy-purple">⚙️ Settings</button>
         </div>
       </div>
+      <div class="text-right text-xs text-gray-500 pt-1" data-quota></div>
     </nav>
 
     <!-- Hero Section -->
@@ -318,8 +319,8 @@
               <div class="mb-6">
                 <label class="block text-sm font-semibold mb-3 text-gray-300">Select Year</label>
                 <div class="grid grid-cols-2 gap-2">
-                  <button onclick="selectYear(2026)" class="year-btn active py-2 rounded-lg bg-energy-purple/20 border border-energy-purple text-energy-purple font-semibold transition-smooth hover:bg-energy-purple/30">2026</button>
-                  <button onclick="selectYear(2027)" class="year-btn py-2 rounded-lg border border-gray-700 text-gray-400 font-semibold transition-smooth hover:border-energy-purple">2027</button>
+                  <button onclick="selectYear(THIS_YEAR)" data-year-offset="0" class="year-btn active py-2 rounded-lg bg-energy-purple/20 border border-energy-purple text-energy-purple font-semibold transition-smooth hover:bg-energy-purple/30">This year</button>
+                  <button onclick="selectYear(THIS_YEAR + 1)" data-year-offset="1" class="year-btn py-2 rounded-lg border border-gray-700 text-gray-400 font-semibold transition-smooth hover:border-energy-purple">Next year</button>
                 </div>
               </div>
 
@@ -464,7 +465,7 @@
             <!-- Stats -->
             <div class="grid grid-cols-3 gap-4 mb-8">
               <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 text-center">
-                <div id="statYear" class="text-3xl font-bold text-energy-purple">2026</div>
+                <div id="statYear" class="text-3xl font-bold text-energy-purple">—</div>
                 <p class="text-gray-400 text-sm mt-2">Year Selected</p>
               </div>
               <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 text-center">
@@ -656,7 +657,7 @@
       <div id="vacation-tab" class="tab-content hidden">
         <div class="bg-gray-900 rounded-xl border border-gray-800 p-8">
           <h2 class="font-display text-3xl font-bold mb-2">Smart Vacation Planner</h2>
-          <p class="text-gray-400 mb-8">AI-powered strategy to maximize your time off</p>
+          <p class="text-gray-400 mb-8">Calculated from the real holiday calendar and your PTO settings</p>
           
           <div class="bg-gray-800/50 rounded-xl border border-gray-700 p-6 mb-8">
             <div class="grid md:grid-cols-3 gap-6">
@@ -679,14 +680,14 @@
           <div id="aiRecommendation" class="bg-gradient-to-r from-energy-purple/20 to-energy-teal/20 rounded-xl border border-energy-purple/30 p-8 mb-8">
             <div class="flex items-center space-x-3 mb-4">
               <iconify-icon icon="mdi:brain" class="text-3xl text-energy-purple"></iconify-icon>
-              <h3 class="font-bold text-2xl text-white">AI-Powered Recommendation</h3>
+              <h3 class="font-bold text-2xl text-white">Your Best PTO Plan</h3>
             </div>
             <div id="aiContent" class="text-gray-300 space-y-4">
               <div class="flex items-center space-x-2">
                 <div class="animate-spin">
                   <iconify-icon icon="mdi:loading" class="text-2xl text-energy-teal"></iconify-icon>
                 </div>
-                <p>Claude AI is analyzing your holidays and planning your best strategy...</p>
+                <p>Calculating your best plan…</p>
               </div>
             </div>
           </div>
@@ -921,7 +922,7 @@
   </div>
 
   <script>
-    let currentYear = 2026;
+    let currentYear = new Date().getFullYear();
     let selectedHoliday = null;
     let allHolidays = {};
     let savedTrips = JSON.parse(localStorage.getItem('savedTrips')) || [];
@@ -952,6 +953,8 @@
       setTimeout(() => document.getElementById('settingsSaved').classList.add('hidden'), 3000);
       applySettingsToUI();
       updateSettingsPreview();
+      initHolidayOptimizer();
+      computeBestOpportunity();
     }
 
     function resetSettings() {
@@ -1022,33 +1025,34 @@
     });
 
     // MOCK DATA - NO API NEEDED!
-    const mockHolidays = {
-      2026: [
-        { name: 'Labor Day', date: '2026-09-07', month: 'Sept', day: '7' },
-        { name: 'Columbus Day', date: '2026-10-12', month: 'Oct', day: '12' },
-        { name: 'Veterans Day', date: '2026-11-11', month: 'Nov', day: '11' },
-        { name: 'Thanksgiving', date: '2026-11-26', month: 'Nov', day: '26' },
-        { name: 'Christmas', date: '2026-12-25', month: 'Dec', day: '25' },
-        { name: 'New Years', date: '2027-01-01', month: 'Jan', day: '1' },
-        { name: 'MLK Day', date: '2026-01-19', month: 'Jan', day: '19' },
-        { name: 'Presidents Day', date: '2026-02-16', month: 'Feb', day: '16' },
-        { name: 'Memorial Day', date: '2026-05-25', month: 'May', day: '25' },
-        { name: 'Independence Day', date: '2026-07-04', month: 'July', day: '4' }
-      ],
-      2027: [
-        { name: 'Labor Day', date: '2027-09-06', month: 'Sept', day: '6' },
-        { name: 'Columbus Day', date: '2027-10-11', month: 'Oct', day: '11' },
-        { name: 'Veterans Day', date: '2027-11-11', month: 'Nov', day: '11' },
-        { name: 'Thanksgiving', date: '2027-11-25', month: 'Nov', day: '25' },
-        { name: 'Christmas', date: '2027-12-25', month: 'Dec', day: '25' },
-        { name: 'New Years', date: '2028-01-01', month: 'Jan', day: '1' },
-        { name: 'MLK Day', date: '2027-01-18', month: 'Jan', day: '18' },
-        { name: 'Presidents Day', date: '2027-02-15', month: 'Feb', day: '15' },
-        { name: 'Memorial Day', date: '2027-05-31', month: 'May', day: '31' },
-        { name: 'Independence Day', date: '2027-07-04', month: 'July', day: '4' }
-      ],
-
-    };
+    // ==========================================
+    // US FEDERAL HOLIDAYS - calculated for any year (always accurate)
+    // ==========================================
+    const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec'];
+    function isoDate(y, m, d) { return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; }
+    function nthWeekday(y, m, weekday, n) { // n-th weekday of month (n = -1 for last)
+      if (n > 0) { const first = new Date(y, m, 1).getDay(); return 1 + ((weekday - first + 7) % 7) + (n - 1) * 7; }
+      const lastDay = new Date(y, m + 1, 0); return lastDay.getDate() - ((lastDay.getDay() - weekday + 7) % 7);
+    }
+    function usFederalHolidays(y) {
+      const list = [
+        ['New Years Day', 0, 1], ['MLK Day', 0, nthWeekday(y, 0, 1, 3)], ['Presidents Day', 1, nthWeekday(y, 1, 1, 3)],
+        ['Memorial Day', 4, nthWeekday(y, 4, 1, -1)], ['Juneteenth', 5, 19], ['Independence Day', 6, 4],
+        ['Labor Day', 8, nthWeekday(y, 8, 1, 1)], ['Columbus Day', 9, nthWeekday(y, 9, 1, 2)], ['Veterans Day', 10, 11],
+        ['Thanksgiving', 10, nthWeekday(y, 10, 4, 4)], ['Christmas', 11, 25]
+      ];
+      return list.map(([name, m, d]) => ({ name, date: isoDate(y, m, d), month: MONTHS_SHORT[m], day: String(d) }));
+    }
+    // Weekend holidays are observed on the nearest weekday (Sat -> Fri, Sun -> Mon)
+    function observedDate(iso) {
+      const d = new Date(iso + 'T12:00:00'); const wd = d.getDay();
+      if (wd === 6) d.setDate(d.getDate() - 1); else if (wd === 0) d.setDate(d.getDate() + 1); else return iso;
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+    const THIS_YEAR = new Date().getFullYear();
+    const HOLIDAY_YEARS = [THIS_YEAR, THIS_YEAR + 1];
+    const mockHolidays = {};
+    HOLIDAY_YEARS.forEach(y => mockHolidays[y] = usFederalHolidays(y));
 
     const mockFlights = {
       // LATIN AMERICA
@@ -1180,6 +1184,8 @@
     // Initialize
     window.addEventListener('load', () => {
       allHolidays = mockHolidays;
+      const sy = document.getElementById('statYear'); if (sy) sy.textContent = currentYear;
+      refreshQuota();
       displayHolidaysForYear(currentYear);
       const allHolidayNames = [...new Set(Object.values(mockHolidays).flat().map(h => h.name))];
       populateDropdown('compareHoliday', allHolidayNames);
@@ -1230,223 +1236,131 @@
     }
 
     // Smart Vacation Planner with AI
+    // ==========================================
+    // DAYS OFF PLANNER - computed from real holiday dates + your settings
+    // ==========================================
+    function dayStr(d) { return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); }
+
+    // Best stretch of consecutive days off containing the holiday, using at most k PTO days
+    function bestStretch(holidayIso, k, holidaySet) {
+      const center = new Date(observedDate(holidayIso) + 'T12:00:00');
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      let best = null;
+      for (let a = -6; a <= 0; a++) for (let b = 0; b <= 6; b++) {
+        const st = new Date(center); st.setDate(center.getDate() + a);
+        const en = new Date(center); en.setDate(center.getDate() + b);
+        if (st < today) continue;
+        const pto = countPTODays(new Date(st), new Date(en), holidaySet);
+        if (pto > k) continue;
+        // stretch must not be extendable for free (count the weekend/holiday edges too)
+        const total = countCalendarDays(new Date(st), new Date(en));
+        if (!best || total > best.total || (total === best.total && pto < best.pto)) best = { start: new Date(st), end: new Date(en), total, pto };
+      }
+      return best;
+    }
+
     function initHolidayOptimizer() {
       const container = document.getElementById('holidayOptimizer');
-      const holidays2026 = mockHolidays[2026];
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      
-      // Define holiday scenarios with accurate data
-      const holidayScenarios = {
-        'New Year\'s Day': {
-          date: 'Jan 1',
-          dayOfWeek: 'Thursday',
-          scenarios: [
-            { days: 'Thu (Holiday)', vacation: 0, total: 3, desc: 'Thu (Holiday) + Fri-Sun (weekend) = 3 days off for 0 vacation days' },
-            { days: 'Wed + Thu + Fri', vacation: 2, total: 5, desc: 'Wed-Fri (2 vacation) + Thu (Holiday) + Sat-Sun = 5 days off for 2 vacation days' }
-          ]
-        },
-        'MLK Jr. Day': {
-          date: 'Jan 20',
-          dayOfWeek: 'Monday',
-          scenarios: [
-            { days: 'Mon (Holiday)', vacation: 0, total: 3, desc: 'Mon (Holiday) + Sat-Sun = 3 days off for 0 vacation days' },
-            { days: 'Fri + Mon', vacation: 1, total: 4, desc: 'Fri (vacation) + Mon (Holiday) + Sat-Sun = 4 days off for 1 vacation day' },
-            { days: 'Fri-Tue', vacation: 2, total: 5, desc: 'Fri-Tue (2 vacation) + Mon (Holiday) + Sat-Sun = 5 days off for 2 vacation days' }
-          ]
-        },
-        'Presidents Day': {
-          date: 'Feb 17',
-          dayOfWeek: 'Monday',
-          scenarios: [
-            { days: 'Mon (Holiday)', vacation: 0, total: 3, desc: 'Mon (Holiday) + Sat-Sun = 3 days off for 0 vacation days' },
-            { days: 'Fri + Mon', vacation: 1, total: 4, desc: 'Fri (vacation) + Mon (Holiday) + Sat-Sun = 4 days off for 1 vacation day' }
-          ]
-        },
-        'Memorial Day': {
-          date: 'May 31',
-          dayOfWeek: 'Sunday',
-          scenarios: [
-            { days: 'Fri + Mon', vacation: 2, total: 4, desc: 'Fri-Mon (2 vacation) + Sun (Holiday) + Sat = 4 days off for 2 vacation days' }
-          ]
-        },
-        'Independence Day': {
-          date: 'Jul 4',
-          dayOfWeek: 'Saturday',
-          scenarios: [
-            { days: 'Fri (vacation)', vacation: 1, total: 3, desc: 'Fri (vacation) + Sat (Holiday) + Sun = 3 days off for 1 vacation day' },
-            { days: 'Thu-Fri + Sat', vacation: 2, total: 4, desc: 'Thu-Fri (2 vacation) + Sat (Holiday) + Sun = 4 days off for 2 vacation days' }
-          ]
-        },
-        'Labor Day': {
-          date: 'Sep 7',
-          dayOfWeek: 'Monday',
-          scenarios: [
-            { days: 'Mon (Holiday)', vacation: 0, total: 3, desc: 'Mon (Holiday) + Sat-Sun = 3 days off for 0 vacation days' },
-            { days: 'Fri + Mon', vacation: 1, total: 4, desc: 'Fri (vacation) + Mon (Holiday) + Sat-Sun = 4 days off for 1 vacation day' }
-          ]
-        },
-        'Columbus Day': {
-          date: 'Oct 12',
-          dayOfWeek: 'Monday',
-          scenarios: [
-            { days: 'Mon (Holiday)', vacation: 0, total: 3, desc: 'Mon (Holiday) + Sat-Sun = 3 days off for 0 vacation days' }
-          ]
-        },
-        'Veterans Day': {
-          date: 'Nov 11',
-          dayOfWeek: 'Wednesday',
-          scenarios: [
-            { days: 'Wed (Holiday)', vacation: 0, total: 3, desc: 'Wed (Holiday) + Sat-Sun = 3 days off for 0 vacation days' },
-            { days: 'Fri + Mon', vacation: 2, total: 4, desc: 'Fri (vacation) + Mon (vacation) around Wed (Holiday) = 4 days off for 2 vacation days' }
-          ]
-        },
-        'Thanksgiving': {
-          date: 'Nov 27',
-          dayOfWeek: 'Thursday',
-          scenarios: [
-            { days: 'Thu (Holiday)', vacation: 0, total: 4, desc: '⭐ Thu (Holiday) + Fri + Sat-Sun = 4 days off for 0 vacation days' },
-            { days: 'Fri (vacation)', vacation: 1, total: 4, desc: 'Fri (vacation) + Thu (Holiday) + Sat-Sun = 4 days off for 1 vacation day' },
-            { days: 'Wed-Fri', vacation: 2, total: 5, desc: 'Wed-Fri (2 vacation) + Thu (Holiday) + Sat-Sun = 5 days off for 2 vacation days' }
-          ]
-        },
-        'Christmas': {
-          date: 'Dec 25',
-          dayOfWeek: 'Friday',
-          scenarios: [
-            { days: 'Fri (Holiday)', vacation: 0, total: 3, desc: '⭐ Fri (Holiday) + Sat-Sun = 3 days off for 0 vacation days' },
-            { days: 'Thu + Fri', vacation: 1, total: 4, desc: 'Thu (vacation) + Fri (Holiday) + Sat-Sun = 4 days off for 1 vacation day' },
-            { days: 'Thu + Fri + Mon', vacation: 2, total: 5, desc: 'Thu (vacation) + Fri (Holiday) + Sat-Sun + Mon (vacation) = 5 days off for 2 vacation days' }
-          ]
+      if (!container) return;
+      const s = getUserSettings();
+      const holidaySet = getCompanyHolidaySet();
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const deadline = new Date(s.deadline + 'T23:59:59');
+
+      const upcoming = HOLIDAY_YEARS.flatMap(y => mockHolidays[y] || [])
+        .filter(h => { const d = new Date(h.date + 'T12:00:00'); return d >= today && d <= deadline; });
+
+      const rankings = upcoming.map(h => {
+        const scenarios = [];
+        for (let k = 0; k <= 5; k++) {
+          const b = bestStretch(h.date, k, holidaySet);
+          if (!b) continue;
+          if (scenarios.length && b.total <= scenarios[scenarios.length - 1].total) continue;
+          scenarios.push({ ...b, vacation: b.pto,
+            desc: `${dayStr(b.start)} → ${dayStr(b.end)} = ${b.total} days off for ${b.pto} PTO day${b.pto === 1 ? '' : 's'}` });
         }
-      };
+        const paid = scenarios.filter(x => x.pto > 0);
+        const best = paid.length ? paid.reduce((a, b) => (b.total / b.pto > a.total / a.pto ? b : a)) : scenarios[0];
+        const value = best ? best.total / Math.max(best.pto, 0.5) : 0;
+        const hd = new Date(h.date + 'T12:00:00');
+        return { name: h.name, date: h.date, dateLabel: hd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          dayOfWeek: hd.toLocaleDateString('en-US', { weekday: 'long' }), observed: observedDate(h.date) !== h.date ? observedDate(h.date) : null,
+          scenarios, best, value };
+      }).filter(r => r.best).sort((a, b) => b.value - a.value);
 
-      // Calculate value rankings
-      const rankings = Object.entries(holidayScenarios).map(([name, data]) => {
-        const bestScenario = data.scenarios[0]; // Best is usually first
-        const value = bestScenario.total / (bestScenario.vacation || 0.5);
-        return { name, ...data, value, best: bestScenario };
-      }).sort((a, b) => b.value - a.value);
-
-      // Display rankings
-      const rankingsHtml = rankings.map((h, i) => `
+      document.getElementById('valueRankings').innerHTML = rankings.length ? rankings.map((h, i) => `
         <div class="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg hover:bg-gray-900 transition-smooth">
           <div class="flex-1">
-            <p class="font-semibold text-white">${i + 1}. ${h.name}</p>
+            <p class="font-semibold text-white">${i + 1}. ${h.name} <span class="text-gray-500 text-sm font-normal">· ${h.dateLabel}</span></p>
             <p class="text-sm text-gray-400">${h.best.desc}</p>
           </div>
-          <div class="text-right">
-            <div class="flex items-center space-x-2">
-              <span class="text-xs font-semibold text-energy-teal">${(h.value).toFixed(1)}x value</span>
-              <span class="text-xl">${'⭐'.repeat(Math.min(5, Math.ceil(h.value)))}</span>
-            </div>
+          <div class="text-right"><span class="text-xs font-semibold text-energy-teal">${h.value.toFixed(1)}x value</span></div>
+        </div>`).join('') : '<p class="text-gray-400">No holidays left before your PTO deadline.</p>';
+
+      buildSmartPlan(rankings, s);
+
+      container.innerHTML = rankings.map(h => `
+        <div class="bg-gray-800/50 rounded-xl border border-gray-700 p-6">
+          <div class="mb-4">
+            <h3 class="font-bold text-xl text-white mb-1">${h.name}</h3>
+            <p class="text-gray-400">${h.dateLabel} (${h.dayOfWeek})${h.observed ? ` · observed ${fmtDate(h.observed)}` : ''}</p>
           </div>
-        </div>
-      `).join('');
-      
-      document.getElementById('valueRankings').innerHTML = rankingsHtml;
-
-      // Call AI to get smart recommendations
-      callAIPlanner(rankings);
-
-      // Display individual holiday details
-      let html = '';
-      Object.entries(holidayScenarios).forEach(([name, data]) => {
-        html += `
-          <div class="bg-gray-800/50 rounded-xl border border-gray-700 p-6">
-            <div class="mb-4">
-              <h3 class="font-bold text-xl text-white mb-1">${name}</h3>
-              <p class="text-gray-400">${data.date} (${data.dayOfWeek})</p>
-            </div>
-            
-            <div class="space-y-3">
-              ${data.scenarios.map((scenario, i) => `
-                <div class="bg-gray-900/50 rounded-lg p-4 border-l-4 border-energy-purple">
-                  <p class="font-semibold text-white mb-2">${scenario.desc}</p>
-                  <div class="flex justify-between text-sm text-gray-400">
-                    <span>Vacation days: <strong class="text-white">${scenario.vacation}</strong></span>
-                    <span>Total days off: <strong class="text-energy-teal">${scenario.total}</strong></span>
-                  </div>
+          <div class="space-y-3">
+            ${h.scenarios.map(sc => `
+              <div class="bg-gray-900/50 rounded-lg p-4 border-l-4 border-energy-purple">
+                <p class="font-semibold text-white mb-2">${sc.desc}</p>
+                <div class="flex justify-between text-sm text-gray-400">
+                  <span>Vacation days: <strong class="text-white">${sc.vacation}</strong></span>
+                  <span>Total days off: <strong class="text-energy-teal">${sc.total}</strong></span>
                 </div>
-              `).join('')}
-            </div>
+              </div>`).join('')}
           </div>
-        `;
-      });
-      
-      container.innerHTML = html;
+        </div>`).join('');
     }
 
-    // Call Anthropic API for AI recommendations
-    async function callAIPlanner(rankings) {
-      try {
-        const holidayData = rankings.map(h => 
-          `${h.name}: ${h.best.desc} (Value: ${h.value.toFixed(1)}x)`
-        ).join('\n');
-
-        const prompt = `You are a vacation planning expert. A user has 15 vacation days remaining to use by May 26, 2027. They want to strategically combine vacation days with US federal holidays to maximize their time off.
-
-Here are the holidays ranked by value (days off per vacation day spent):
-
-${holidayData}
-
-The user has already used 2 days. They can spread vacations throughout the year, not all at once.
-
-Create a smart vacation plan that:
-1. Uses their 15 vacation days strategically
-2. Recommends specific holidays to take vacation around
-3. Maximizes total days off while leaving some backup days
-4. Spreads vacations throughout the year for better work-life balance
-
-Format your response as:
-RECOMMENDED PLAN:
-- Holiday 1: [days to take off] = [total days off]
-- Holiday 2: [days to take off] = [total days off]
-- Holiday 3: [days to take off] = [total days off]
-
-SUMMARY:
-Total vacation days used: X
-Total days off gained: Y
-Backup days remaining: Z
-Best strategy: [explanation]`;
-
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-6",
-            max_tokens: 1000,
-            messages: [
-              { role: "user", content: prompt }
-            ],
-          })
-        });
-
-        const data = await response.json();
-        const aiResponse = data.content[0].text;
-        
-        document.getElementById('aiContent').innerHTML = `
-          <div class="text-gray-200 space-y-3 whitespace-pre-wrap font-mono text-sm">
-            ${aiResponse}
-          </div>
-        `;
-      } catch (error) {
-        console.error('AI call error:', error);
-        document.getElementById('aiContent').innerHTML = `
-          <div class="text-gray-300">
-            <p>Unable to load AI recommendation. Here's what to consider:</p>
-            <ul class="list-disc ml-6 mt-2 space-y-1">
-              <li>Thanksgiving (0 vacation days) = 4 days off - BEST VALUE</li>
-              <li>Christmas (0-1 vacation days) = 3-4 days off - EXCELLENT</li>
-              <li>New Year's Day (0 vacation days) = 3 days off - FREE</li>
-              <li>Independence Day (1-2 vacation days) = 3-4 days off - GOOD</li>
-            </ul>
-          </div>
-        `;
+    // Picks the best-value holidays that fit your remaining PTO before the deadline
+    function buildSmartPlan(rankings, s) {
+      const el = document.getElementById('aiContent');
+      if (!el) return;
+      let left = s.totalPTO - s.usedPTO;
+      const picks = [], taken = [];
+      const free = rankings.filter(r => r.scenarios[0] && r.scenarios[0].pto === 0 && r.scenarios[0].total >= 3);
+      for (const r of [...rankings].sort((a, b) => b.value - a.value)) {
+        const opts = r.scenarios.filter(x => x.pto > 0 && x.pto <= left);
+        if (!opts.length) continue;
+        const pick = opts.reduce((a, b) => (b.total / b.pto > a.total / a.pto ? b : a));
+        if (taken.some(t => pick.start <= t.end && pick.end >= t.start)) continue; // overlapping trip
+        picks.push({ r, pick }); taken.push(pick); left -= pick.pto;
       }
+      // Spend leftover PTO on the upgrades that add the most days off per PTO day
+      for (;;) {
+        let bestUp = null;
+        picks.forEach((p, idx) => p.r.scenarios.forEach(sc => {
+          const extra = sc.pto - p.pick.pto, gain = sc.total - p.pick.total;
+          if (extra <= 0 || extra > left || gain <= 0) return;
+          if (taken.some((t, ti) => ti !== idx && sc.start <= t.end && sc.end >= t.start)) return;
+          const ratio = gain / extra;
+          if (ratio >= 1.5 && (!bestUp || ratio > bestUp.ratio)) bestUp = { idx, sc, extra, ratio };
+        }));
+        if (!bestUp) break;
+        left -= bestUp.extra; picks[bestUp.idx].pick = bestUp.sc; taken[bestUp.idx] = bestUp.sc;
+      }
+      picks.sort((a, b) => a.pick.start - b.pick.start);
+      const used = picks.reduce((t, p) => t + p.pick.pto, 0);
+      const daysOff = picks.reduce((t, p) => t + p.pick.total, 0);
+      el.innerHTML = `
+        <p class="text-sm text-gray-400">Built from your settings: <b>${s.totalPTO - s.usedPTO}</b> PTO days left, use by <b>${fmtDate(s.deadline)}</b>. Weekends and holidays are free.</p>
+        <div class="space-y-2">
+          ${picks.map(p => `<div class="bg-gray-900/50 rounded-lg p-3"><b class="text-white">${p.r.name}</b> <span class="text-gray-400">— ${p.pick.desc}</span></div>`).join('') || '<p>No PTO trips fit before your deadline.</p>'}
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="bg-gray-900/50 rounded-lg p-3"><div class="text-2xl font-bold text-energy-purple">${used}</div><div class="text-xs text-gray-400">PTO days used</div></div>
+          <div class="bg-gray-900/50 rounded-lg p-3"><div class="text-2xl font-bold text-energy-teal">${daysOff}</div><div class="text-xs text-gray-400">days off gained</div></div>
+          <div class="bg-gray-900/50 rounded-lg p-3"><div class="text-2xl font-bold text-white">${left}</div><div class="text-xs text-gray-400">PTO days to spare</div></div>
+        </div>
+        ${free.length ? `<p class="text-sm text-gray-400">Free long weekends (0 PTO): ${free.map(f => f.name).join(', ')}.</p>` : ''}`;
     }
-    
+
     // Call on page load
     setTimeout(() => initHolidayOptimizer(), 100);
 
@@ -1459,7 +1373,7 @@ Best strategy: [explanation]`;
 
       // Collect all holidays from 2026 and 2027
       const allHolidays = [];
-      [2026, 2027].forEach(year => {
+      HOLIDAY_YEARS.forEach(year => {
         (mockHolidays[year] || []).forEach(h => {
           if (new Date(h.date + 'T12:00:00') >= today) {
             allHolidays.push(h);
@@ -1482,7 +1396,7 @@ Best strategy: [explanation]`;
     // Initialize on load
     setTimeout(() => {
       populatePTODropdown();
-      displayHolidaysForYear(2026);
+      displayHolidaysForYear(currentYear);
     }, 150);
 
     function displayHolidaysForYear(year) {
@@ -1502,7 +1416,7 @@ Best strategy: [explanation]`;
       grid.innerHTML = futureHolidays.map(holiday => `
         <button onclick="selectHoliday('${holiday.name}', '${holiday.date}', event.target.closest('button'))" 
                 class="p-3 rounded-lg border border-gray-700 hover:border-energy-purple hover:bg-energy-purple/10 transition-smooth text-sm font-semibold text-left">
-          <div class="font-bold text-white">${holiday.name.split(' ')[0]}</div>
+          <div class="font-bold text-white">${holiday.name}</div>
           <div class="text-xs text-gray-400">${holiday.month} ${holiday.day}</div>
         </button>
       `).join('');
@@ -1556,10 +1470,48 @@ Best strategy: [explanation]`;
     function addDays(isoDate, n) {
       const d = new Date(isoDate + 'T12:00:00');
       d.setDate(d.getDate() + n);
-      return d.toISOString().slice(0, 10);
+      return localIso(d);
     }
 
     let liveStatus = { live: false };
+
+    const DEST_FIX = { NYC: 'JFK', CRC: 'SJO' };
+    function daysUntil(iso) { const t = new Date(); t.setHours(0,0,0,0); return Math.round((new Date(iso + 'T00:00:00') - t) / 86400000); }
+    function fmtDate(iso) { return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    function money(n) { return n == null ? '—' : '$' + Math.round(n).toLocaleString(); }
+    // Airlines sell ~11 months out; Google Flights has nothing beyond ~330 days
+    function bookableReason(depart) {
+      const d = daysUntil(depart);
+      if (d < 0) return 'Date already passed';
+      if (d > 330) return 'Not on sale yet (airlines open ~11 months ahead)';
+      return null;
+    }
+    // One live call -> cheapest nonstop/1-stop round trip + Google's price insights
+    async function liveQuote(from, to, depart, ret) {
+      const why = bookableReason(depart);
+      if (why) return { ok: false, reason: why };
+      try {
+        const data = await fetchLiveFlights(from || getUserSettings().airport, DEST_FIX[to] || to, depart, ret);
+        const fl = data.flights.filter(f => f.stops <= 1);
+        if (!fl.length) return { ok: false, reason: 'No nonstop/1-stop flights found', data };
+        const cheapest = fl.reduce((a, b) => (b.price < a.price ? b : a));
+        const top5 = [...fl].sort((a, b) => a.price - b.price).slice(0, 5);
+        return { ok: true, price: cheapest.price, airline: cheapest.airline, stops: cheapest.stops,
+          avg: Math.round(top5.reduce((t, f) => t + f.price, 0) / top5.length), insights: data.insights,
+          provider: data.provider, fetchedAt: data.fetchedAt, count: fl.length };
+      } catch (e) {
+        return { ok: false, reason: e.message };
+      }
+    }
+    const LIVE_TAG = '<span class="inline-block px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 text-[10px] font-bold align-middle">LIVE</span>';
+    // Searches left this month (free check, does not use a search)
+    async function refreshQuota() {
+      const base = getApiBase(); if (!base) return;
+      try {
+        const q = await (await fetch(`${base}/api/live-flights?quota=1&t=${Date.now()}`, { cache: 'no-store' })).json();
+        if (q.searchesLeft != null) document.querySelectorAll('[data-quota]').forEach(el => el.textContent = `${q.searchesLeft} live searches left this month`);
+      } catch (e) {}
+    }
 
     async function fetchLiveFlights(from, to, depart, ret) {
       const base = getApiBase();
@@ -1768,54 +1720,50 @@ Best strategy: [explanation]`;
       loadSavedTrips();
     }
 
-    function compareYears() {
+    async function compareYears() {
       const holiday = document.getElementById('compareHoliday').value;
       const destination = document.getElementById('compareDestination').value;
+      const from = (document.getElementById('compareFromAirport').value || getUserSettings().airport).toUpperCase().trim();
+      if (!holiday || !destination) { alert('Please select a holiday and destination'); return; }
 
-      if (!holiday || !destination) {
-        alert('Please select a holiday and destination');
-        return;
-      }
-
-      const comparisons = [2026, 2027].map(year => {
-        const yearHoliday = (mockHolidays[year] || []).find(h => h.name === holiday);
-        let baseFlights = mockFlights[destination] || defaultFlights;
-        
-        // Filter nonstop and 1-stop only
-        baseFlights = baseFlights.filter(f => f.stops <= 1);
-        
-        const priceVar = Math.floor(Math.random() * 100 - 50);
-        return {
-          date: yearHoliday ? yearHoliday.date : 'N/A',
-          year,
-          cheapest: { price: baseFlights[0].price + priceVar, airline: baseFlights[0].airline },
-          average: Math.round(baseFlights.reduce((sum, f) => sum + f.price, 0) / baseFlights.length) + priceVar
-        };
-      });
-
-      displayComparison(comparisons);
       document.getElementById('comparisonResults').classList.remove('hidden');
+      document.getElementById('comparisonTable').innerHTML = `<tbody><tr><td class="py-6 text-gray-400">Getting live prices ${from} → ${destination}…</td></tr></tbody>`;
+
+      const comparisons = [];
+      for (const year of HOLIDAY_YEARS) {
+        const h = (mockHolidays[year] || []).find(x => x.name === holiday);
+        if (!h) continue;
+        const ret = addDays(h.date, 7);
+        const q = await liveQuote(from, destination, h.date, ret);
+        comparisons.push({ year, date: h.date, ret, q });
+      }
+      displayComparison(comparisons);
+      refreshQuota();
     }
 
     function displayComparison(comparisons) {
       const html = `
         <thead>
           <tr class="border-b border-gray-700">
-            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Date</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Trip dates</th>
             <th class="text-left py-4 px-4 font-semibold text-energy-purple">Year</th>
             <th class="text-left py-4 px-4 font-semibold text-energy-purple">Cheapest</th>
             <th class="text-left py-4 px-4 font-semibold text-energy-purple">Airline</th>
-            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Avg Price</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Avg of 5 cheapest</th>
+            <th class="text-left py-4 px-4 font-semibold text-energy-purple">Google says</th>
           </tr>
         </thead>
         <tbody>
           ${comparisons.map(c => `
             <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-smooth">
-              <td class="py-4 px-4">${c.date}</td>
+              <td class="py-4 px-4">${fmtDate(c.date)} → ${fmtDate(c.ret)}</td>
               <td class="py-4 px-4 font-semibold">${c.year}</td>
-              <td class="py-4 px-4 text-energy-teal font-bold">$${c.cheapest.price}</td>
-              <td class="py-4 px-4">${c.cheapest.airline}</td>
-              <td class="py-4 px-4">$${c.average}</td>
+              ${c.q.ok ? `
+              <td class="py-4 px-4 text-energy-teal font-bold">${money(c.q.price)} ${LIVE_TAG}</td>
+              <td class="py-4 px-4">${c.q.airline}${c.q.stops === 0 ? ' · nonstop' : ' · 1 stop'}</td>
+              <td class="py-4 px-4">${money(c.q.avg)}</td>
+              <td class="py-4 px-4">${c.q.insights && c.q.insights.priceLevel ? 'Prices are <b>' + c.q.insights.priceLevel + '</b>' : '—'}</td>`
+              : `<td colspan="4" class="py-4 px-4 text-yellow-300 text-sm">${c.q.reason}</td>`}
             </tr>
           `).join('')}
         </tbody>
@@ -1823,40 +1771,50 @@ Best strategy: [explanation]`;
       document.getElementById('comparisonTable').innerHTML = html;
     }
 
-    function getPriceTrends() {
+    async function getPriceTrends() {
       const holiday = document.getElementById('trendHoliday').value;
       const destination = document.getElementById('trendDestination').value;
+      const from = (document.getElementById('trendFromAirport').value || getUserSettings().airport).toUpperCase().trim();
+      if (!holiday || !destination) { alert('Please select a holiday and destination'); return; }
 
-      if (!holiday || !destination) {
-        alert('Please select a holiday and destination');
-        return;
-      }
+      // Next upcoming, bookable occurrence of this holiday
+      const h = HOLIDAY_YEARS.map(y => (mockHolidays[y] || []).find(x => x.name === holiday))
+        .filter(Boolean).find(x => !bookableReason(x.date));
+      const box = document.getElementById('trendsResults');
+      box.classList.remove('hidden');
+      if (!h) { box.innerHTML = '<p class="text-yellow-300">No upcoming date for this holiday is on sale yet.</p>'; return; }
 
-      const trends = [2026, 2027].map(year => ({
-        year,
-        cheapest: Math.floor(Math.random() * 300) + 150
-      }));
-
-      displayTrends(trends);
-      document.getElementById('trendsResults').classList.remove('hidden');
+      box.innerHTML = `<p class="text-gray-400">Getting live price history ${from} → ${destination} for ${h.name}…</p>`;
+      const ret = addDays(h.date, 7);
+      const q = await liveQuote(from, destination, h.date, ret);
+      displayTrends({ h, ret, q, from, destination });
+      refreshQuota();
     }
 
-    function displayTrends(trends) {
-      const maxPrice = Math.max(...trends.map(t => t.cheapest));
-
-      const html = trends.map(t => `
-        <div class="space-y-2">
-          <div class="flex justify-between items-center">
-            <span class="font-semibold">${t.year}</span>
-            <span class="text-energy-teal font-bold">$${t.cheapest}</span>
-          </div>
-          <div class="h-8 bg-gray-800 rounded-lg overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-energy-purple to-energy-teal transition-smooth" style="width: ${(t.cheapest / maxPrice) * 100}%"></div>
-          </div>
+    function displayTrends({ h, ret, q, from, destination }) {
+      const box = document.getElementById('trendsResults');
+      if (!q.ok) { box.innerHTML = `<p class="text-yellow-300">${q.reason}</p>`; return; }
+      const ins = q.insights || {};
+      const hist = (ins.priceHistory || []).filter(p => Array.isArray(p) && p.length === 2);
+      // one point per week, last ~10 weeks
+      const weekly = hist.filter((_, i) => (hist.length - 1 - i) % 7 === 0).slice(-10);
+      const max = Math.max(...weekly.map(p => p[1]), q.price, 1);
+      const bars = weekly.map(([ts, price]) => {
+        const d = new Date(ts * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return `<div class="space-y-1">
+          <div class="flex justify-between text-sm"><span class="text-gray-400">${d}</span><span class="text-energy-teal font-bold">${money(price)}</span></div>
+          <div class="h-6 bg-gray-800 rounded-lg overflow-hidden"><div class="h-full bg-gradient-to-r from-energy-purple to-energy-teal" style="width:${(price / max) * 100}%"></div></div>
+        </div>`;
+      }).join('');
+      box.innerHTML = `
+        <div class="grid md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-gray-800/50 rounded-xl p-4"><div class="text-gray-400 text-xs">Cheapest right now ${LIVE_TAG}</div><div class="text-2xl font-bold text-energy-teal">${money(q.price)}</div><div class="text-xs text-gray-500">${q.airline}</div></div>
+          <div class="bg-gray-800/50 rounded-xl p-4"><div class="text-gray-400 text-xs">Typical range (Google)</div><div class="text-2xl font-bold text-white">${Array.isArray(ins.typicalRange) ? money(ins.typicalRange[0]) + '–' + money(ins.typicalRange[1]) : '—'}</div></div>
+          <div class="bg-gray-800/50 rounded-xl p-4"><div class="text-gray-400 text-xs">Price level now</div><div class="text-2xl font-bold text-white capitalize">${ins.priceLevel || '—'}</div></div>
         </div>
-      `).join('');
-
-      document.getElementById('trendsResults').innerHTML = html;
+        <h4 class="font-semibold text-white mb-1">How the lowest price has moved</h4>
+        <p class="text-xs text-gray-500 mb-4">${from} → ${destination}, ${h.name} trip ${fmtDate(h.date)} → ${fmtDate(ret)}. Weekly snapshots from Google Flights' own price history.</p>
+        <div class="space-y-3">${bars || '<p class="text-gray-500 text-sm">Google has no price history for this route yet.</p>'}</div>`;
     }
 
     // ==========================================
@@ -1920,25 +1878,29 @@ Best strategy: [explanation]`;
     // All company holidays (YYYY-MM-DD strings) for quick lookup
     function getCompanyHolidaySet() {
       const holidays = new Set();
-      [2026, 2027].forEach(year => {
-        (mockHolidays[year] || []).forEach(h => holidays.add(h.date));
+      HOLIDAY_YEARS.forEach(year => {
+        (mockHolidays[year] || []).forEach(h => { holidays.add(h.date); holidays.add(observedDate(h.date)); });
       });
       return holidays;
     }
 
     // Is a given date a "free" day? (weekend or company holiday)
+    // Local calendar date as YYYY-MM-DD (never shifts a day because of time zones)
+    function localIso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+
     function isFreeDay(date, holidaySet) {
       const day = date.getDay(); // 0=Sun, 6=Sat
       if (day === 0 || day === 6) return true;
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = localIso(date);
       return holidaySet.has(dateStr);
     }
 
     // Count PTO days needed for a date range (exclude weekends + holidays)
     function countPTODays(startDate, endDate, holidaySet) {
       let pto = 0;
-      const d = new Date(startDate);
-      while (d <= endDate) {
+      const d = new Date(startDate); d.setHours(12, 0, 0, 0);
+      const end = new Date(endDate); end.setHours(12, 0, 0, 0);
+      while (d <= end) {
         if (!isFreeDay(d, holidaySet)) pto++;
         d.setDate(d.getDate() + 1);
       }
@@ -1947,17 +1909,19 @@ Best strategy: [explanation]`;
 
     // Count total calendar days (inclusive)
     function countCalendarDays(startDate, endDate) {
-      const diffTime = Math.abs(endDate - startDate);
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      const a = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+      const b = Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+      return Math.round(Math.abs(b - a) / 86400000) + 1;
     }
 
     // Build a day-by-day breakdown for display
     function buildDayBreakdown(startDate, endDate, holidaySet) {
       const days = [];
-      const d = new Date(startDate);
-      while (d <= endDate) {
+      const d = new Date(startDate); d.setHours(12, 0, 0, 0);
+      const end = new Date(endDate); end.setHours(12, 0, 0, 0);
+      while (d <= end) {
         const dayOfWeek = d.getDay();
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = localIso(d);
         const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
         const isHoliday = holidaySet.has(dateStr);
         const isPTO = !isWeekend && !isHoliday;
@@ -2018,7 +1982,7 @@ Best strategy: [explanation]`;
 
         // Get all future holidays across 2026-2027
         const futureHolidays = [];
-        [2026, 2027].forEach(year => {
+        HOLIDAY_YEARS.forEach(year => {
           (mockHolidays[year] || []).forEach(h => {
             const hDate = new Date(h.date + 'T12:00:00');
             if (hDate >= today) futureHolidays.push(h);
@@ -2050,9 +2014,9 @@ Best strategy: [explanation]`;
               if (totalDays < 2) continue;
 
               const valueScore = ptoDays === 0 ? totalDays * 10 : Math.round((totalDays / ptoDays) * 10) / 10;
-              const startStr = new Date(s).toISOString().split('T')[0];
-              const endStr = new Date(e).toISOString().split('T')[0];
-              const price = estimateFlightPrice(destination, startStr, endStr);
+              const startStr = localIso(new Date(s));
+              const endStr = localIso(new Date(e));
+              const price = null; // filled with a LIVE fare after ranking
 
               allResults.push({
                 holiday: holiday.name,
@@ -2084,8 +2048,23 @@ Best strategy: [explanation]`;
           return true;
         });
 
-        displayPTOMaximizerResults(unique.slice(0, 10), destination);
+        const top = unique.slice(0, 10);
+        window.__ptoResults = top; window.__ptoDest = destination;
+        displayPTOMaximizerResults(top, destination);
+        // Live fares for the top 3 automatically; the rest on click (saves free searches)
+        (async () => { for (let i = 0; i < Math.min(3, top.length); i++) await loadPTOPrice(i); refreshQuota(); })();
       }, 500);
+    }
+
+    async function loadPTOPrice(i) {
+      const r = (window.__ptoResults || [])[i]; const el = document.getElementById('ptoPrice-' + i);
+      if (!r || !el) return;
+      el.innerHTML = '<div class="text-gray-400 text-sm">Checking…</div>';
+      const q = await liveQuote(getUserSettings().airport, window.__ptoDest, r.startDate, r.endDate);
+      r.price = q.ok ? q.price : null;
+      el.innerHTML = q.ok
+        ? `<div class="text-energy-teal font-bold text-xl">${money(q.price)} ${LIVE_TAG}</div><div class="text-gray-500 text-xs">${q.airline} · round-trip</div>`
+        : `<div class="text-yellow-300 text-xs max-w-[180px]">${q.reason}</div>`;
     }
 
     function displayPTOMaximizerResults(results, destination) {
@@ -2144,14 +2123,14 @@ Best strategy: [explanation]`;
 
               <!-- Value Score -->
               <div class="flex-shrink-0 text-center">
-                <div class="px-4 py-2 ${valueColor} rounded-xl font-bold text-2xl">${r.valueScore}x</div>
+                <div class="px-4 py-2 ${valueColor} rounded-xl font-bold text-2xl">${r.ptoDays === 0 ? 'FREE' : r.valueScore + 'x'}</div>
                 <div class="text-gray-500 text-xs mt-1">value</div>
               </div>
 
               <!-- Price -->
-              <div class="flex-shrink-0 text-right">
-                <div class="text-energy-teal font-bold text-xl">$${r.price}</div>
-                <div class="text-gray-500 text-xs">est. round-trip</div>
+              <div class="flex-shrink-0 text-right" id="ptoPrice-${i}">
+                <button onclick="loadPTOPrice(${i}).then(refreshQuota)" class="px-3 py-1.5 bg-gray-700 hover:bg-energy-teal hover:text-black rounded text-xs font-semibold">Get live price</button>
+                <div class="text-gray-500 text-xs mt-1">round-trip</div>
               </div>
             </div>
 
@@ -2179,7 +2158,7 @@ Best strategy: [explanation]`;
       html += `
         <div class="mt-4 bg-gray-800/30 border border-gray-700/50 rounded-lg p-3 text-xs text-gray-500 leading-relaxed">
           💡 <strong>Value score</strong> = total days off ÷ PTO days used. Higher is better — a 5x means 5 days off for every 1 PTO day spent.
-          Prices are route-based estimates; click any booking link for the actual fare. Weekends (Sat/Sun) and company holidays are always counted as free.
+          Top 3 prices are LIVE Google Flights fares (cheapest nonstop/1-stop round trip); tap "Get live price" for the others. Weekends (Sat/Sun) and company holidays are always counted as free.
         </div>
       `;
 
@@ -2358,18 +2337,16 @@ Or click any quick filter on the left. What sounds good?`);
         explanation = 'No exact matches — here are the best affordable options: ';
       }
 
-      // Score, enrich with PTO data and hotel costs
-      const holidaySet = getCompanyHolidaySet();
-      const nights = requestedPTO || 3;
+      // Real trip dates: best stretch around the next holiday that's 2+ weeks out and on sale
+      const trip = nextTripWindow(requestedPTO || 1);
+      const nights = trip ? Math.max(1, trip.total - 1) : (requestedPTO || 3);
       const scored = filtered.map(d => {
-        const flightPrice = estimateFlightPrice(d.code, new Date().toISOString().split('T')[0], new Date(Date.now() + 5*86400000).toISOString().split('T')[0]);
         const hotelTotal = d.hotelPerNight * nights;
-        const tripTotal = flightPrice + hotelTotal;
-        // PTO: calculate best window for next holiday
-        const ptoDays = requestedPTO || Math.min(3, Math.ceil(d.flightHrs > 6 ? 5 : 3));
-        const totalDaysOff = ptoDays + 2; // +weekends approximation
-        return { ...d, flightPrice, hotelTotal, tripTotal, ptoDays, totalDaysOff, nights,
-          score: Math.round((tripTotal / 1200) * 40 + (d.flightHrs / 10) * 20 + (d.passport ? 20 : 0) + (ptoDays / 10) * 20) };
+        const estTotal = d.baseCost * 2 + hotelTotal; // only used to rank before live prices arrive
+        return { ...d, flightPrice: null, hotelTotal, tripTotal: null, estTotal, nights,
+          ptoDays: trip ? trip.pto : (requestedPTO || 0), totalDaysOff: trip ? trip.total : nights + 1,
+          depart: trip ? trip.depart : null, ret: trip ? trip.ret : null, tripLabel: trip ? trip.label : '',
+          score: Math.round((estTotal / 1200) * 40 + (d.flightHrs / 10) * 20 + (d.passport ? 20 : 0)) };
       });
       scored.sort((a, b) => a.score - b.score);
 
@@ -2378,7 +2355,7 @@ Or click any quick filter on the left. What sounds good?`);
 
       // Build chat response with "why this trip" 
       let response = explanation ? `<p class="mb-3 text-gray-300">${explanation}</p>` : '';
-      response += `<p class="mb-4 text-gray-300">Here are my top picks from <strong>${homeAirport}</strong> (${nights} nights):</p>`;
+      response += `<p class="mb-4 text-gray-300">Here are my top picks from <strong>${homeAirport}</strong>${trip ? ` for <strong>${trip.label}</strong> (${trip.total} days off, ${trip.pto} PTO)` : ` (${nights} nights)`}. Pulling live fares now…</p>`;
 
       top.forEach((d, i) => {
         const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
@@ -2386,12 +2363,12 @@ Or click any quick filter on the left. What sounds good?`);
           <div class="bg-gray-700/30 rounded-xl p-4 mb-3 border border-gray-700/50">
             <div class="flex justify-between items-start mb-2">
               <span class="font-bold text-white text-base">${rank} ${d.emoji} ${d.name}</span>
-              <span class="text-energy-teal font-bold">$${d.tripTotal} total</span>
+              <span class="text-energy-teal font-bold" data-live-total="${d.code}">checking live price…</span>
             </div>
             <div class="flex flex-wrap gap-2 mb-2 text-xs">
               <span class="px-2 py-1 bg-gray-600/50 rounded text-gray-300">✈️ ${d.flightHrs}h flight</span>
               <span class="px-2 py-1 bg-energy-purple/20 text-energy-purple rounded">${d.ptoDays} PTO days</span>
-              <span class="px-2 py-1 bg-energy-teal/20 text-energy-teal rounded">~${d.totalDaysOff} days off</span>
+              <span class="px-2 py-1 bg-energy-teal/20 text-energy-teal rounded">${d.totalDaysOff} days off</span>
               <span class="px-2 py-1 bg-gray-600/50 rounded text-gray-300">🏨 $${d.hotelPerNight}/night</span>
             </div>
             <p class="text-sm text-gray-400 italic leading-relaxed">"${d.why}"</p>
@@ -2403,7 +2380,35 @@ Or click any quick filter on the left. What sounds good?`);
       setTimeout(() => {
         addAIMessage('bot', response);
         showDestCards(top);
+        (async () => { for (const d of top) await ensureLive(d); refreshQuota(); })();
       }, 600);
+    }
+
+    function nextTripWindow(pto) {
+      const holidaySet = getCompanyHolidaySet();
+      const h = HOLIDAY_YEARS.flatMap(y => mockHolidays[y] || []).find(x => daysUntil(x.date) >= 14 && !bookableReason(x.date));
+      if (!h) return null;
+      const b = bestStretch(h.date, pto, holidaySet);
+      if (!b) return null;
+      const iso = localIso;
+      return { depart: iso(b.start), ret: iso(b.end), total: b.total, pto: b.pto, label: `${h.name} (${dayStr(b.start)} → ${dayStr(b.end)})` };
+    }
+
+    // Fetch the live fare for one destination and update every place it's shown
+    async function ensureLive(d) {
+      if (d.flightPrice != null || d.liveError) return d;
+      if (!d.depart) { d.liveError = 'No upcoming trip dates'; }
+      else {
+        document.querySelectorAll(`[data-live-total="${d.code}"]`).forEach(el => el.textContent = 'checking live price…');
+        const q = await liveQuote(getUserSettings().airport, d.code, d.depart, d.ret);
+        if (q.ok) { d.flightPrice = q.price; d.flightAirline = q.airline; d.tripTotal = q.price + d.hotelTotal; }
+        else d.liveError = q.reason;
+      }
+      const src = lastAIResults.find(x => x.code === d.code); if (src && src !== d) Object.assign(src, d);
+      document.querySelectorAll(`[data-live-total="${d.code}"]`).forEach(el => el.innerHTML = d.tripTotal != null ? `${money(d.tripTotal)} total ${LIVE_TAG}` : `<span class="text-yellow-300 text-xs">${d.liveError}</span>`);
+      document.querySelectorAll(`[data-live-flight="${d.code}"]`).forEach(el => el.innerHTML = d.flightPrice != null ? `✈️ ${money(d.flightPrice)} ${d.flightAirline || ''} ${LIVE_TAG}` : `<span class="text-yellow-300">${d.liveError}</span>`);
+      document.querySelectorAll(`[data-live-btn="${d.code}"]`).forEach(el => el.remove());
+      return d;
     }
 
     function showDestCards(dests) {
@@ -2414,7 +2419,7 @@ Or click any quick filter on the left. What sounds good?`);
       lastAIResults = dests.length > 3 ? dests : lastAIResults;
 
       grid.innerHTML = dests.map((d, i) => {
-        const googleUrl = getBookingUrlWithDates('google', homeAirport, d.code, '', '');
+        const googleUrl = getBookingUrlWithDates('google', homeAirport, d.code, d.depart || '', d.ret || '');
         const kayakUrl = `https://www.kayak.com/explore/${homeAirport}/?budget=&duration=&flightType=round&sort=rank`;
         const rank = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
         return `
@@ -2426,8 +2431,8 @@ Or click any quick filter on the left. What sounds good?`);
                 <p class="text-gray-500 text-xs">${d.code} · ${d.flightHrs}h from ${homeAirport}</p>
               </div>
               <div class="text-right">
-                <div class="text-energy-teal font-bold text-lg">$${d.tripTotal}</div>
-                <div class="text-gray-500" style="font-size:10px">flight + ${d.nights || 3}n hotel</div>
+                <div class="text-energy-teal font-bold text-lg" data-live-total="${d.code}">${d.tripTotal != null ? `${money(d.tripTotal)} total ${LIVE_TAG}` : (d.liveError ? `<span class="text-yellow-300 text-xs">${d.liveError}</span>` : '…')}</div>
+                <div class="text-gray-500" style="font-size:10px">live flight + ${d.nights || 3}n hotel (est.)</div>
               </div>
             </div>
             <!-- Key Stats Row -->
@@ -2437,7 +2442,7 @@ Or click any quick filter on the left. What sounds good?`);
                 <div class="text-gray-500" style="font-size:10px">PTO days</div>
               </div>
               <div class="bg-gray-800 rounded-lg py-2 px-1">
-                <div class="text-energy-teal font-bold text-sm">~${d.totalDaysOff}</div>
+                <div class="text-energy-teal font-bold text-sm">${d.totalDaysOff}</div>
                 <div class="text-gray-500" style="font-size:10px">days off</div>
               </div>
               <div class="bg-gray-800 rounded-lg py-2 px-1">
@@ -2447,10 +2452,11 @@ Or click any quick filter on the left. What sounds good?`);
             </div>
             <!-- Cost Breakdown -->
             <div class="flex justify-between text-xs text-gray-500 mb-2 px-1">
-              <span>✈️ ~$${d.flightPrice} flight</span>
-              <span>🏨 ~$${d.hotelTotal} hotel</span>
+              <span data-live-flight="${d.code}">${d.flightPrice != null ? `✈️ ${money(d.flightPrice)} ${LIVE_TAG}` : `<button data-live-btn="${d.code}" onclick="ensureLive(lastAIResults.find(x=>x.code==='${d.code}')).then(refreshQuota)" class="underline text-energy-teal">Get live fare</button>`}</span>
+              <span>🏨 ~${money(d.hotelTotal)} hotel (est.)</span>
               ${!d.passport ? '<span class="text-green-400">No passport</span>' : '<span class="text-yellow-400">Passport req.</span>'}
             </div>
+            ${d.tripLabel ? `<div class="text-[11px] text-gray-500 mb-2 px-1">📅 ${d.tripLabel}</div>` : ''}
             <!-- Why This Trip -->
             <div class="bg-gray-800/50 rounded-lg p-3 mb-3 flex-1">
               <p class="text-xs text-gray-400 italic leading-relaxed">${d.why}</p>
@@ -2487,10 +2493,11 @@ Or click any quick filter on the left. What sounds good?`);
       else hideCompare();
     }
 
-    function showCompare() {
+    async function showCompare() {
       const a = lastAIResults.find(d => d.code === compareList[0]);
       const b = lastAIResults.find(d => d.code === compareList[1]);
       if (!a || !b) return;
+      await ensureLive(a); await ensureLive(b); refreshQuota();
 
       let existing = document.getElementById('comparePanel');
       if (!existing) {
@@ -2517,9 +2524,9 @@ Or click any quick filter on the left. What sounds good?`);
                 <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">✈️ Flight Time</td><td class="py-3 px-3 text-center font-semibold ${better(a.flightHrs, b.flightHrs, true)}">${a.flightHrs}h</td><td class="py-3 px-3 text-center font-semibold ${better(b.flightHrs, a.flightHrs, true)}">${b.flightHrs}h</td></tr>
                 <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">📅 PTO Days</td><td class="py-3 px-3 text-center font-semibold ${better(a.ptoDays, b.ptoDays, true)}">${a.ptoDays} days</td><td class="py-3 px-3 text-center font-semibold ${better(b.ptoDays, a.ptoDays, true)}">${b.ptoDays} days</td></tr>
                 <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">🏖️ Total Days Off</td><td class="py-3 px-3 text-center font-semibold ${better(a.totalDaysOff, b.totalDaysOff, false)}">${a.totalDaysOff} days</td><td class="py-3 px-3 text-center font-semibold ${better(b.totalDaysOff, a.totalDaysOff, false)}">${b.totalDaysOff} days</td></tr>
-                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">✈️ Est. Flight</td><td class="py-3 px-3 text-center font-semibold ${better(a.flightPrice, b.flightPrice, true)}">$${a.flightPrice}</td><td class="py-3 px-3 text-center font-semibold ${better(b.flightPrice, a.flightPrice, true)}">$${b.flightPrice}</td></tr>
-                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">🏨 Est. Hotel</td><td class="py-3 px-3 text-center font-semibold ${better(a.hotelTotal, b.hotelTotal, true)}">$${a.hotelTotal} (${a.nights || 3}n)</td><td class="py-3 px-3 text-center font-semibold ${better(b.hotelTotal, a.hotelTotal, true)}">$${b.hotelTotal} (${b.nights || 3}n)</td></tr>
-                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400 font-bold">💰 Total Cost</td><td class="py-3 px-3 text-center font-bold text-lg ${better(a.tripTotal, b.tripTotal, true)}">$${a.tripTotal}</td><td class="py-3 px-3 text-center font-bold text-lg ${better(b.tripTotal, a.tripTotal, true)}">$${b.tripTotal}</td></tr>
+                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">✈️ Flight (live)</td><td class="py-3 px-3 text-center font-semibold ${better(a.flightPrice, b.flightPrice, true)}">${money(a.flightPrice)}</td><td class="py-3 px-3 text-center font-semibold ${better(b.flightPrice, a.flightPrice, true)}">${money(b.flightPrice)}</td></tr>
+                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">🏨 Est. Hotel</td><td class="py-3 px-3 text-center font-semibold ${better(a.hotelTotal, b.hotelTotal, true)}">${money(a.hotelTotal)} (${a.nights || 3}n)</td><td class="py-3 px-3 text-center font-semibold ${better(b.hotelTotal, a.hotelTotal, true)}">${money(b.hotelTotal)} (${b.nights || 3}n)</td></tr>
+                <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400 font-bold">💰 Total Cost</td><td class="py-3 px-3 text-center font-bold text-lg ${better(a.tripTotal, b.tripTotal, true)}">${money(a.tripTotal)}</td><td class="py-3 px-3 text-center font-bold text-lg ${better(b.tripTotal, a.tripTotal, true)}">${money(b.tripTotal)}</td></tr>
                 <tr class="border-b border-gray-800"><td class="py-3 px-3 text-gray-400">🌡️ Avg Temp</td><td class="py-3 px-3 text-center">${a.avgTemp}°F</td><td class="py-3 px-3 text-center">${b.avgTemp}°F</td></tr>
                 <tr><td class="py-3 px-3 text-gray-400">🛂 Passport</td><td class="py-3 px-3 text-center">${a.passport ? '🟡 Needed' : '🟢 Not needed'}</td><td class="py-3 px-3 text-center">${b.passport ? '🟡 Needed' : '🟢 Not needed'}</td></tr>
               </tbody>
@@ -2541,7 +2548,7 @@ Or click any quick filter on the left. What sounds good?`);
     function aiSortCards(sortBy) {
       if (lastAIResults.length === 0) return;
       let sorted = [...lastAIResults];
-      if (sortBy === 'cost') sorted.sort((a, b) => a.tripTotal - b.tripTotal);
+      if (sortBy === 'cost') sorted.sort((a, b) => (a.tripTotal ?? a.estTotal + 1e5) - (b.tripTotal ?? b.estTotal + 1e5));
       else if (sortBy === 'daysoff') sorted.sort((a, b) => b.totalDaysOff - a.totalDaysOff);
       showDestCards(sorted.slice(0, 6));
       addAIMessage('bot', `Results re-sorted by <strong>${sortBy === 'cost' ? 'lowest total cost' : 'most days off'}</strong>. Cards updated below! 👇`);
@@ -2581,7 +2588,7 @@ Or click any quick filter on the left. What sounds good?`);
       const today = new Date(); today.setHours(0,0,0,0);
       let best = null;
 
-      [2026, 2027].forEach(year => {
+      HOLIDAY_YEARS.forEach(year => {
         (mockHolidays[year] || []).forEach(h => {
           const hDate = new Date(h.date + 'T12:00:00');
           if (hDate < today) return;

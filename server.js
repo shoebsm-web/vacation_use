@@ -11,7 +11,7 @@ const fetch = require('node-fetch');
 
 const app = express();
 const PORT = process.env.PORT || 3000; // Your server will run on http://localhost:3000
-const { searchLiveFlights, providerStatus } = require('./lib/liveFlights');
+const { searchLiveFlights, providerStatus, getQuota } = require('./lib/liveFlights');
 
 // Step 3: Allow your website to talk to this server
 app.use(cors());
@@ -32,6 +32,10 @@ console.log('✈️  Live price providers:', providerStatus().map(p => `${p.name
 app.get('/api/live-flights', async (req, res) => {
   res.set('Cache-Control', 'no-store');
   if (req.query.status) return res.json({ ok: true, providers: providerStatus() });
+  if (req.query.quota) {
+    try { return res.json(await getQuota()); }
+    catch (err) { return res.status(502).json({ error: err.message.replace(process.env.SERPAPI_KEY || '~', '***') }); }
+  }
   try {
     const { from, to, depart } = req.query;
     console.log(`📡 LIVE search ${from} → ${to} ${depart} / ${req.query.return || 'one-way'}`);
