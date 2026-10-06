@@ -1053,6 +1053,35 @@
     const HOLIDAY_YEARS = [THIS_YEAR, THIS_YEAR + 1];
     const mockHolidays = {};
     HOLIDAY_YEARS.forEach(y => mockHolidays[y] = usFederalHolidays(y));
+    // Only holidays from today onward - a holiday disappears the day after it passes
+    function todayIso() { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }
+    function upcomingHolidays() {
+      const t = todayIso();
+      return HOLIDAY_YEARS.flatMap(y => mockHolidays[y] || []).filter(h => h.date >= t).sort((a, b) => a.date.localeCompare(b.date));
+    }
+    // Compare/Trends holiday pickers: upcoming holidays only, labeled with the next date
+    function populateHolidayPickers() {
+      const seen = new Set();
+      const opts = upcomingHolidays().filter(h => !seen.has(h.name) && seen.add(h.name));
+      ['compareHoliday', 'trendHoliday'].forEach(id => {
+        const el = document.getElementById(id); if (!el) return;
+        const keep = el.value;
+        el.innerHTML = '<option value="">Select holiday</option>' + opts.map(h =>
+          `<option value="${h.name}">${h.name} — ${new Date(h.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</option>`).join('');
+        if (opts.some(h => h.name === keep)) el.value = keep;
+      });
+    }
+    // If the page stays open past midnight, drop holidays that just passed
+    function refreshHolidayViews() {
+      populateHolidayPickers();
+      if (typeof displayHolidaysForYear === 'function') displayHolidaysForYear(currentYear);
+      if (typeof initHolidayOptimizer === 'function') initHolidayOptimizer();
+      if (typeof computeBestOpportunity === 'function') computeBestOpportunity();
+    }
+    (function scheduleMidnight() {
+      const now = new Date(), next = new Date(now); next.setHours(24, 0, 5, 0);
+      setTimeout(() => { refreshHolidayViews(); scheduleMidnight(); }, next - now);
+    })();
 
     const mockFlights = {
       // LATIN AMERICA
@@ -1185,11 +1214,10 @@
     window.addEventListener('load', () => {
       allHolidays = mockHolidays;
       const sy = document.getElementById('statYear'); if (sy) sy.textContent = currentYear;
+      computeBestOpportunity();
       refreshQuota();
       displayHolidaysForYear(currentYear);
-      const allHolidayNames = [...new Set(Object.values(mockHolidays).flat().map(h => h.name))];
-      populateDropdown('compareHoliday', allHolidayNames);
-      populateDropdown('trendHoliday', allHolidayNames);
+      populateHolidayPickers();
       
       // Get all destinations from the search dropdown and mock flights
       const destinationDropdown = document.getElementById('destination');
@@ -1732,7 +1760,7 @@
       const comparisons = [];
       for (const year of HOLIDAY_YEARS) {
         const h = (mockHolidays[year] || []).find(x => x.name === holiday);
-        if (!h) continue;
+        if (!h || h.date < todayIso()) continue; // past dates are never shown
         const ret = addDays(h.date, 7);
         const q = await liveQuote(from, destination, h.date, ret);
         comparisons.push({ year, date: h.date, ret, q });
