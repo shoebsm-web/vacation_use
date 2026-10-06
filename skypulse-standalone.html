@@ -2332,7 +2332,7 @@ Or click any quick filter on the left. What sounds good?`);
 
       let all;
       try {
-        const data = await fetchExplore(home, trip.depart, trip.ret, interest);
+        const data = await fetchExplore(home, trip.depart, trip.ret, ''); // categories are filtered below
         const hp = data.destinations.map(x => x.hotelPrice).filter(v => v != null).sort((a, b) => a - b);
         const typicalHotel = hp.length ? hp[Math.floor(hp.length / 2)] : 150;
         all = data.destinations.map(x => exploreToDest(x, trip, nights, typicalHotel));
@@ -2354,7 +2354,9 @@ Or click any quick filter on the left. What sounds good?`);
       if (/weekend|short flight|quick|close by|nearby/.test(q)) { list = list.filter(d => d.flightHrs == null || d.flightHrs <= 4); notes.push('flights under 4h'); }
       if (/nonstop|direct/.test(q)) { list = list.filter(d => d.stops === 0); notes.push('nonstop only'); }
       if (budget) { list = list.filter(d => (d.tripTotal ?? d.estTotal) <= budget); notes.push(`under $${budget} total`); }
-      if (interest) notes.push(interest);
+      if (interest === 'outdoors') { const o = list.filter(d => /national park|park|canyon|mountain|glacier|yosemite|yellowstone|sedona|moab|bozeman|jackson/i.test(d.name)); if (o.length) { list = o; notes.push('outdoors & national parks'); } }
+      if (interest === 'skiing') { const o = list.filter(d => /aspen|vail|eagle|steamboat|jackson|salt lake|bozeman|denver|telluride|park city|lake tahoe|reno|montrose|gunnison/i.test(d.name)); if (o.length) { list = o; notes.push('ski towns'); } }
+      if (interest === 'beaches') notes.push('beaches');
 
       const sorter = (a, b) => (a.tripTotal ?? a.estTotal) - (b.tripTotal ?? b.estTotal);
       if (/surprise|random/.test(q)) list.sort(() => Math.random() - 0.5); else list.sort(sorter);
