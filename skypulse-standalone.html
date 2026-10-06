@@ -2333,7 +2333,9 @@ Or click any quick filter on the left. What sounds good?`);
       let all;
       try {
         const data = await fetchExplore(home, trip.depart, trip.ret, interest);
-        all = data.destinations.map(x => exploreToDest(x, trip, nights));
+        const hp = data.destinations.map(x => x.hotelPrice).filter(v => v != null).sort((a, b) => a - b);
+        const typicalHotel = hp.length ? hp[Math.floor(hp.length / 2)] : 150;
+        all = data.destinations.map(x => exploreToDest(x, trip, nights, typicalHotel));
       } catch (e) {
         addAIMessage('bot', `<p class="text-yellow-300">Live destination search failed (${e.message}). Showing my saved list with live fares instead.</p>`);
         all = destinations.map(d => ({ ...d, flightPrice: null, hotelNight: d.hotelPerNight, hotelTotal: d.hotelPerNight * nights, tripTotal: null,
@@ -2412,9 +2414,10 @@ Or click any quick filter on the left. What sounds good?`);
     }
 
     const NO_PASSPORT = ['United States', 'Puerto Rico', 'U.S. Virgin Islands', 'United States Virgin Islands', 'Guam'];
-    function exploreToDest(x, trip, nights) {
-      const local = destinations.find(d => d.code === x.code) || {};
-      const hotelNight = x.hotelPrice != null ? x.hotelPrice : (local.hotelPerNight || null);
+    function exploreToDest(x, trip, nights, typicalHotel) {
+      // Only reuse saved notes when it's really the same city (parks share airports with cities)
+      const local = destinations.find(d => d.code === x.code && (x.name || '').toLowerCase().includes(d.name.toLowerCase().split(' ')[0])) || {};
+      const hotelNight = x.hotelPrice != null ? x.hotelPrice : (local.hotelPerNight || typicalHotel || null);
       const hotelTotal = hotelNight != null ? hotelNight * nights : 0;
       const flightHrs = x.flightMins != null ? Math.round(x.flightMins / 6) / 10 : (local.flightHrs || null);
       const climate = local.climate || (x.lat == null ? 'varied' : Math.abs(x.lat) < 30 ? 'warm' : x.lat > 42 ? 'cool' : 'mild');
