@@ -1089,8 +1089,12 @@
     }
     const THIS_YEAR = new Date().getFullYear();
     const HOLIDAY_YEARS = [THIS_YEAR, THIS_YEAR + 1];
+    // The PTO maths looks up to 14 days past a holiday, so the last Christmas in HOLIDAY_YEARS
+    // spills into the following January. Generate one extra year of holidays so New Years Day is
+    // never counted as a working day. HOLIDAY_YEARS still controls what the tabs list and scan.
+    const HOLIDAY_SET_YEARS = [...HOLIDAY_YEARS, THIS_YEAR + 2];
     const mockHolidays = {};
-    HOLIDAY_YEARS.forEach(y => mockHolidays[y] = usFederalHolidays(y));
+    HOLIDAY_SET_YEARS.forEach(y => mockHolidays[y] = usFederalHolidays(y));
     // Only holidays from today onward - a holiday disappears the day after it passes
     function todayIso() { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }
     function upcomingHolidays() {
@@ -1944,7 +1948,7 @@
     // All company holidays (YYYY-MM-DD strings) for quick lookup
     function getCompanyHolidaySet() {
       const holidays = new Set();
-      HOLIDAY_YEARS.forEach(year => {
+      HOLIDAY_SET_YEARS.forEach(year => {
         (mockHolidays[year] || []).forEach(h => { holidays.add(h.date); holidays.add(observedDate(h.date)); });
       });
       return holidays;
