@@ -793,7 +793,7 @@
                 <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl">🤖</div>
                 <div>
                   <h3 class="font-bold text-white">AI Trip Discovery</h3>
-                  <p class="text-white/70 text-xs">Powered by Claude · Finds your perfect trip using PTO data</p>
+                  <p class="text-white/70 text-xs">Matches your PTO settings to the holiday calendar</p>
                 </div>
               </div>
               <div id="aiChatMessages" class="flex-1 p-4 space-y-4 overflow-y-auto" style="max-height:400px"></div>
@@ -942,7 +942,6 @@
           <div class="flex-1">
             <h3 class="text-xl font-bold mb-2 flex items-center space-x-2">
               <span>AI Recommendation</span>
-              <span class="text-energy-teal">by Claude</span>
             </h3>
             <p id="searchSummary" class="text-gray-300 leading-relaxed">Analyzing flights...</p>
           </div>
@@ -2657,8 +2656,8 @@ Or click any quick filter on the left. What sounds good?`);
           if (hDate < today) return;
           // Check window around this holiday
           for (let pto = 1; pto <= 5; pto++) {
-            const start = new Date(hDate); start.setDate(hDate.getDate() - 3);
-            const end = new Date(hDate); end.setDate(hDate.getDate() + 3);
+            const start = new Date(hDate); start.setDate(hDate.getDate() - pto);
+            const end = new Date(hDate); end.setDate(hDate.getDate() + pto);
             if (start < today) start.setTime(today.getTime());
             const totalDays = countCalendarDays(start, end);
             const ptoDays = countPTODays(start, end, holidaySet);
