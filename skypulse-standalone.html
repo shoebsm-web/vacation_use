@@ -793,7 +793,7 @@
                 <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl">🤖</div>
                 <div>
                   <h3 class="font-bold text-white">AI Trip Discovery</h3>
-                  <p class="text-white/70 text-xs">Powered by Claude · Finds your perfect trip using PTO data</p>
+                  <p class="text-white/70 text-xs">Matches your PTO settings to the holiday calendar</p>
                 </div>
               </div>
               <div id="aiChatMessages" class="flex-1 p-4 space-y-4 overflow-y-auto" style="max-height:400px"></div>
@@ -942,7 +942,6 @@
           <div class="flex-1">
             <h3 class="text-xl font-bold mb-2 flex items-center space-x-2">
               <span>AI Recommendation</span>
-              <span class="text-energy-teal">by Claude</span>
             </h3>
             <p id="searchSummary" class="text-gray-300 leading-relaxed">Analyzing flights...</p>
           </div>
@@ -954,6 +953,7 @@
     <footer class="border-t border-gray-800 mt-20 py-12 px-4">
       <div class="max-w-7xl mx-auto text-center text-gray-400 text-sm">
         <p>Prices come live from Google Flights (via SerpApi) and can change quickly — always confirm on the booking site before you buy.</p>
+        <p class="mt-2">Holidays and PTO plans use <strong class="text-gray-300">US federal holidays only</strong> — they won't match other countries' public holidays.</p>
         <p class="mt-2">SkyPulse is an independent project and isn't affiliated with Google, Kayak or any airline. Your settings stay in your own browser.</p>
       </div>
     </footer>
@@ -1089,8 +1089,12 @@
     }
     const THIS_YEAR = new Date().getFullYear();
     const HOLIDAY_YEARS = [THIS_YEAR, THIS_YEAR + 1];
+    // The PTO maths looks up to 14 days past a holiday, so the last Christmas in HOLIDAY_YEARS
+    // spills into the following January. Generate one extra year of holidays so New Years Day is
+    // never counted as a working day. HOLIDAY_YEARS still controls what the tabs list and scan.
+    const HOLIDAY_SET_YEARS = [...HOLIDAY_YEARS, THIS_YEAR + 2];
     const mockHolidays = {};
-    HOLIDAY_YEARS.forEach(y => mockHolidays[y] = usFederalHolidays(y));
+    HOLIDAY_SET_YEARS.forEach(y => mockHolidays[y] = usFederalHolidays(y));
     // Only holidays from today onward - a holiday disappears the day after it passes
     function todayIso() { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }
     function upcomingHolidays() {
@@ -1123,129 +1127,129 @@
 
     const mockFlights = {
       // LATIN AMERICA
-      'MIA': [{ airline: 'Southwest', price: 245, duration: '2h 30m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'United', price: 268, duration: '3h 15m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 255, duration: '2h 45m', stops: 0, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Delta', price: 275, duration: '3h 00m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Frontier', price: 189, duration: '4h 30m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'CUN': [{ airline: 'Southwest', price: 289, duration: '2h 45m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'United', price: 312, duration: '3h 30m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'Cancun Air', price: 267, duration: '2h 30m', stops: 0, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Delta', price: 335, duration: '4h 00m', stops: 2, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Frontier', price: 234, duration: '3h 45m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'MEX': [{ airline: 'United', price: 278, duration: '2h 30m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'Aeromexico', price: 295, duration: '2h 45m', stops: 0, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 285, duration: '3h 00m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Volaris', price: 245, duration: '3h 30m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Frontier', price: 229, duration: '3h 45m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'BOG': [{ airline: 'United', price: 389, duration: '5h 45m', stops: 1, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'LATAM', price: 412, duration: '5h 30m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 398, duration: '6h 00m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Avianca', price: 378, duration: '6h 30m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Spirit', price: 299, duration: '7h 45m', stops: 2, source: 'Amadeus', trip: 'Round-trip' }],
-      'LIM': [{ airline: 'United', price: 425, duration: '6h 00m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'LATAM', price: 445, duration: '6h 15m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 435, duration: '6h 30m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Avianca', price: 415, duration: '7h 00m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Frontier', price: 349, duration: '8h 30m', stops: 2, source: 'Amadeus', trip: 'Round-trip' }],
-      'GIG': [{ airline: 'United', price: 489, duration: '8h 00m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'LATAM', price: 512, duration: '8h 15m', stops: 0, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 498, duration: '8h 45m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'TAP Air Portugal', price: 445, duration: '9h 00m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Spirit', price: 399, duration: '10h 30m', stops: 2, source: 'Amadeus', trip: 'Round-trip' }],
-      'AEP': [{ airline: 'United', price: 445, duration: '8h 30m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'LATAM', price: 468, duration: '8h 45m', stops: 0, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 455, duration: '9h 15m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Aerolineas', price: 425, duration: '9h 30m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Spirit', price: 359, duration: '10h 45m', stops: 2, source: 'Amadeus', trip: 'Round-trip' }],
-      'CRC': [{ airline: 'United', price: 298, duration: '3h 15m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'Spirit', price: 278, duration: '3h 45m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'Frontier', price: 289, duration: '4h 00m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'JetBlue', price: 308, duration: '4h 15m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Southwest', price: 268, duration: '4h 30m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'PTY': [{ airline: 'United', price: 289, duration: '2h 45m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'Copa', price: 298, duration: '3h 00m', stops: 0, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 308, duration: '3h 30m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Spirit', price: 259, duration: '4h 15m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Frontier', price: 279, duration: '4h 30m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
+      'MIA': [{ airline: 'Southwest', price: 245, duration: '2h 30m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 268, duration: '3h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 255, duration: '2h 45m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 275, duration: '3h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Frontier', price: 189, duration: '4h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'CUN': [{ airline: 'Southwest', price: 289, duration: '2h 45m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 312, duration: '3h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Cancun Air', price: 267, duration: '2h 30m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 335, duration: '4h 00m', stops: 2, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Frontier', price: 234, duration: '3h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'MEX': [{ airline: 'United', price: 278, duration: '2h 30m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Aeromexico', price: 295, duration: '2h 45m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 285, duration: '3h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Volaris', price: 245, duration: '3h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Frontier', price: 229, duration: '3h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'BOG': [{ airline: 'United', price: 389, duration: '5h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'LATAM', price: 412, duration: '5h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 398, duration: '6h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Avianca', price: 378, duration: '6h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Spirit', price: 299, duration: '7h 45m', stops: 2, source: 'Sample data', trip: 'Round-trip' }],
+      'LIM': [{ airline: 'United', price: 425, duration: '6h 00m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'LATAM', price: 445, duration: '6h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 435, duration: '6h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Avianca', price: 415, duration: '7h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Frontier', price: 349, duration: '8h 30m', stops: 2, source: 'Sample data', trip: 'Round-trip' }],
+      'GIG': [{ airline: 'United', price: 489, duration: '8h 00m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'LATAM', price: 512, duration: '8h 15m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 498, duration: '8h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'TAP Air Portugal', price: 445, duration: '9h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Spirit', price: 399, duration: '10h 30m', stops: 2, source: 'Sample data', trip: 'Round-trip' }],
+      'AEP': [{ airline: 'United', price: 445, duration: '8h 30m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'LATAM', price: 468, duration: '8h 45m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 455, duration: '9h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Aerolineas', price: 425, duration: '9h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Spirit', price: 359, duration: '10h 45m', stops: 2, source: 'Sample data', trip: 'Round-trip' }],
+      'CRC': [{ airline: 'United', price: 298, duration: '3h 15m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Spirit', price: 278, duration: '3h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Frontier', price: 289, duration: '4h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'JetBlue', price: 308, duration: '4h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Southwest', price: 268, duration: '4h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'PTY': [{ airline: 'United', price: 289, duration: '2h 45m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Copa', price: 298, duration: '3h 00m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 308, duration: '3h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Spirit', price: 259, duration: '4h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Frontier', price: 279, duration: '4h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
       
       // US MAJOR HUBS
-      'LAX': [{ airline: 'Southwest', price: 189, duration: '3h 45m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'United', price: 210, duration: '4h 00m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 198, duration: '3h 50m', stops: 0, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Delta', price: 225, duration: '4h 15m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Alaska', price: 175, duration: '4h 30m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'NYC': [{ airline: 'Southwest', price: 145, duration: '2h 30m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'United', price: 168, duration: '3h 00m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 155, duration: '2h 45m', stops: 0, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'JetBlue', price: 139, duration: '2h 50m', stops: 0, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Budget Air', price: 125, duration: '3h 30m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'LAS': [{ airline: 'Southwest', price: 119, duration: '2h 30m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'United', price: 138, duration: '3h 00m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 129, duration: '2h 45m', stops: 0, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Spirit', price: 99, duration: '3h 30m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Frontier', price: 108, duration: '3h 00m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'ORD': [{ airline: 'United', price: 135, duration: '2h 00m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'American', price: 145, duration: '2h 15m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'Southwest', price: 128, duration: '2h 30m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Delta', price: 155, duration: '2h 45m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Frontier', price: 108, duration: '3h 15m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'DFW': [{ airline: 'Southwest', price: 125, duration: '1h 30m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'American', price: 135, duration: '2h 00m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'United', price: 145, duration: '2h 15m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Delta', price: 155, duration: '2h 30m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Spirit', price: 95, duration: '2h 45m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'ATL': [{ airline: 'Delta', price: 138, duration: '2h 15m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'Southwest', price: 128, duration: '2h 30m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'United', price: 148, duration: '2h 45m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'American', price: 158, duration: '3h 00m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Frontier', price: 105, duration: '3h 30m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'DEN': [{ airline: 'Southwest', price: 135, duration: '1h 50m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'United', price: 148, duration: '2h 00m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'Frontier', price: 118, duration: '2h 15m', stops: 0, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Delta', price: 158, duration: '2h 30m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Spirit', price: 98, duration: '2h 45m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'SFO': [{ airline: 'Southwest', price: 168, duration: '4h 45m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'United', price: 185, duration: '5h 00m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'American', price: 175, duration: '5h 15m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Delta', price: 195, duration: '5h 30m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Virgin America', price: 158, duration: '5h 45m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'SEA': [{ airline: 'Southwest', price: 188, duration: '4h 00m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'United', price: 205, duration: '4h 15m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'Alaska', price: 178, duration: '4h 30m', stops: 0, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Delta', price: 215, duration: '4h 45m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Spirit', price: 148, duration: '5h 30m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'BOS': [{ airline: 'Southwest', price: 158, duration: '2h 45m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'JetBlue', price: 148, duration: '2h 50m', stops: 0, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'United', price: 168, duration: '3h 00m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'American', price: 178, duration: '3h 15m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Spirit', price: 125, duration: '3h 45m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
+      'LAX': [{ airline: 'Southwest', price: 189, duration: '3h 45m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 210, duration: '4h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 198, duration: '3h 50m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 225, duration: '4h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Alaska', price: 175, duration: '4h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'NYC': [{ airline: 'Southwest', price: 145, duration: '2h 30m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 168, duration: '3h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 155, duration: '2h 45m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'JetBlue', price: 139, duration: '2h 50m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Budget Air', price: 125, duration: '3h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'LAS': [{ airline: 'Southwest', price: 119, duration: '2h 30m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 138, duration: '3h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 129, duration: '2h 45m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Spirit', price: 99, duration: '3h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Frontier', price: 108, duration: '3h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'ORD': [{ airline: 'United', price: 135, duration: '2h 00m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 145, duration: '2h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Southwest', price: 128, duration: '2h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 155, duration: '2h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Frontier', price: 108, duration: '3h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'DFW': [{ airline: 'Southwest', price: 125, duration: '1h 30m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 135, duration: '2h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 145, duration: '2h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 155, duration: '2h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Spirit', price: 95, duration: '2h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'ATL': [{ airline: 'Delta', price: 138, duration: '2h 15m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Southwest', price: 128, duration: '2h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 148, duration: '2h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 158, duration: '3h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Frontier', price: 105, duration: '3h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'DEN': [{ airline: 'Southwest', price: 135, duration: '1h 50m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 148, duration: '2h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Frontier', price: 118, duration: '2h 15m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 158, duration: '2h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Spirit', price: 98, duration: '2h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'SFO': [{ airline: 'Southwest', price: 168, duration: '4h 45m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 185, duration: '5h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 175, duration: '5h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 195, duration: '5h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Virgin America', price: 158, duration: '5h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'SEA': [{ airline: 'Southwest', price: 188, duration: '4h 00m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 205, duration: '4h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Alaska', price: 178, duration: '4h 30m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 215, duration: '4h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Spirit', price: 148, duration: '5h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'BOS': [{ airline: 'Southwest', price: 158, duration: '2h 45m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'JetBlue', price: 148, duration: '2h 50m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 168, duration: '3h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 178, duration: '3h 15m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Spirit', price: 125, duration: '3h 45m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
 
       // INTERNATIONAL
-      'CDG': [{ airline: 'United', price: 489, duration: '7h 30m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'Air France', price: 512, duration: '7h 00m', stops: 0, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'Delta', price: 498, duration: '8h 30m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'American', price: 525, duration: '9h 00m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Lufthansa', price: 467, duration: '8h 00m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }],
-      'LHR': [{ airline: 'British Airways', price: 445, duration: '7h 00m', stops: 0, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'United', price: 468, duration: '7h 30m', stops: 0, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'Virgin Atlantic', price: 425, duration: '7h 15m', stops: 0, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Delta', price: 489, duration: '8h 30m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Norse', price: 289, duration: '7h 00m', stops: 0, source: 'Amadeus', trip: 'Round-trip' }],
-      'BCN': [{ airline: 'United', price: 445, duration: '8h 30m', stops: 1, source: 'Google Flights', trip: 'Round-trip' },
-              { airline: 'Iberia', price: 478, duration: '8h 00m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-              { airline: 'Delta', price: 456, duration: '9h 30m', stops: 2, source: 'Kayak', trip: 'Round-trip' },
-              { airline: 'Vueling', price: 389, duration: '8h 30m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-              { airline: 'Lufthansa', price: 434, duration: '8h 00m', stops: 1, source: 'Amadeus', trip: 'Round-trip' }]
+      'CDG': [{ airline: 'United', price: 489, duration: '7h 30m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Air France', price: 512, duration: '7h 00m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 498, duration: '8h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'American', price: 525, duration: '9h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Lufthansa', price: 467, duration: '8h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' }],
+      'LHR': [{ airline: 'British Airways', price: 445, duration: '7h 00m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'United', price: 468, duration: '7h 30m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Virgin Atlantic', price: 425, duration: '7h 15m', stops: 0, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 489, duration: '8h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Norse', price: 289, duration: '7h 00m', stops: 0, source: 'Sample data', trip: 'Round-trip' }],
+      'BCN': [{ airline: 'United', price: 445, duration: '8h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Iberia', price: 478, duration: '8h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Delta', price: 456, duration: '9h 30m', stops: 2, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Vueling', price: 389, duration: '8h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+              { airline: 'Lufthansa', price: 434, duration: '8h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' }]
     };
 
     // Fill in default data for any airport not explicitly defined
     const defaultFlights = [
-      { airline: 'United', price: 300, duration: '5h 00m', stops: 1, source: 'Google Flights', trip: 'Round-trip' },
-      { airline: 'American', price: 315, duration: '5h 30m', stops: 1, source: 'Skyscanner', trip: 'Round-trip' },
-      { airline: 'Delta', price: 328, duration: '6h 00m', stops: 1, source: 'Kayak', trip: 'Round-trip' },
-      { airline: 'Southwest', price: 289, duration: '6h 30m', stops: 1, source: 'Kiwi', trip: 'Round-trip' },
-      { airline: 'Spirit', price: 239, duration: '7h 30m', stops: 2, source: 'Amadeus', trip: 'Round-trip' }
+      { airline: 'United', price: 300, duration: '5h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+      { airline: 'American', price: 315, duration: '5h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+      { airline: 'Delta', price: 328, duration: '6h 00m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+      { airline: 'Southwest', price: 289, duration: '6h 30m', stops: 1, source: 'Sample data', trip: 'Round-trip' },
+      { airline: 'Spirit', price: 239, duration: '7h 30m', stops: 2, source: 'Sample data', trip: 'Round-trip' }
     ];
 
     // Initialize
@@ -1944,7 +1948,7 @@
     // All company holidays (YYYY-MM-DD strings) for quick lookup
     function getCompanyHolidaySet() {
       const holidays = new Set();
-      HOLIDAY_YEARS.forEach(year => {
+      HOLIDAY_SET_YEARS.forEach(year => {
         (mockHolidays[year] || []).forEach(h => { holidays.add(h.date); holidays.add(observedDate(h.date)); });
       });
       return holidays;
@@ -2652,8 +2656,8 @@ Or click any quick filter on the left. What sounds good?`);
           if (hDate < today) return;
           // Check window around this holiday
           for (let pto = 1; pto <= 5; pto++) {
-            const start = new Date(hDate); start.setDate(hDate.getDate() - 3);
-            const end = new Date(hDate); end.setDate(hDate.getDate() + 3);
+            const start = new Date(hDate); start.setDate(hDate.getDate() - pto);
+            const end = new Date(hDate); end.setDate(hDate.getDate() + pto);
             if (start < today) start.setTime(today.getTime());
             const totalDays = countCalendarDays(start, end);
             const ptoDays = countPTODays(start, end, holidaySet);
